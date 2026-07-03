@@ -29,8 +29,21 @@ export class AudioEngine {
       }
     }
     if (this.ctx && this.ctx.state === "suspended") {
-      void this.ctx.resume();
+      void this.ctx.resume().then(() => this.warmUp());
+    } else if (this.ctx) {
+      this.warmUp();
     }
+  }
+
+  /**
+   * Build the always-on brush/eraser graphs once the context is actually
+   * running. Doing this on the first user gesture (rather than lazily during
+   * the first stroke, when the context may still be resuming) ensures the pen
+   * makes sound the very first time it is used.
+   */
+  private warmUp(): void {
+    this.ensureBrush();
+    this.ensureEraser();
   }
 
   blip(freq: number, dur: number, vol: number, type: OscillatorType = "sine"): void {
@@ -114,7 +127,7 @@ export class AudioEngine {
    * burst. A single always-on, gain-gated graph avoids both.
    */
   private ensureBrush(): void {
-    if (!this.ctx || this.brushSrc || !this.noiseBuf) return;
+    if (!this.ctx || this.ctx.state !== "running" || this.brushSrc || !this.noiseBuf) return;
     const t = this.ctx.currentTime;
 
     const src = this.ctx.createBufferSource();
@@ -182,7 +195,7 @@ export class AudioEngine {
   /** Persistent eraser graph: lower and more muffled than the pencil, like a
    * soft rubbing on paper. Same always-on, gain-gated design as the brush. */
   private ensureEraser(): void {
-    if (!this.ctx || this.eraserSrc || !this.noiseBuf) return;
+    if (!this.ctx || this.ctx.state !== "running" || this.eraserSrc || !this.noiseBuf) return;
     const t = this.ctx.currentTime;
 
     const src = this.ctx.createBufferSource();
