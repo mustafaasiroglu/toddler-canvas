@@ -1,4 +1,3 @@
-import { isLight } from "../data/colors";
 import "./Palette.css";
 
 interface PaletteProps {
@@ -15,7 +14,7 @@ export function Palette({ colors, current, visible, onSelect }: PaletteProps) {
         <div
           key={hex}
           className={"swatch" + (hex === current ? " sel" : "")}
-          style={{ background: hex, borderColor: isLight(hex) ? "#e2e2e2" : undefined }}
+          style={{ background: hex }}
           onClick={() => onSelect(hex)}
         />
       ))}

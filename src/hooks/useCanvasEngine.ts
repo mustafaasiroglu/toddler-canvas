@@ -5,16 +5,30 @@ import { CanvasEngine } from "../engine/CanvasEngine";
  * Creates and owns a single CanvasEngine bound to a stage element.
  * The engine lives for the lifetime of the component and is torn down on unmount.
  */
-export function useCanvasEngine(onFirstInteraction?: () => void) {
+export function useCanvasEngine(
+  onFirstInteraction?: () => void,
+  onDrawStart?: () => void,
+  onEmptyTap?: () => void,
+  onSelectMode?: () => void,
+) {
   const stageRef = useRef<HTMLDivElement | null>(null);
   const engineRef = useRef<CanvasEngine | null>(null);
   const cbRef = useRef(onFirstInteraction);
   cbRef.current = onFirstInteraction;
+  const drawRef = useRef(onDrawStart);
+  drawRef.current = onDrawStart;
+  const emptyRef = useRef(onEmptyTap);
+  emptyRef.current = onEmptyTap;
+  const selectRef = useRef(onSelectMode);
+  selectRef.current = onSelectMode;
 
   useEffect(() => {
     if (!stageRef.current) return;
     const engine = new CanvasEngine(stageRef.current, {
       onFirstInteraction: () => cbRef.current?.(),
+      onDrawStart: () => drawRef.current?.(),
+      onEmptyTap: () => emptyRef.current?.(),
+      onSelectMode: () => selectRef.current?.(),
     });
     engineRef.current = engine;
     return () => {

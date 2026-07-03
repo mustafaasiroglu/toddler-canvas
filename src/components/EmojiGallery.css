@@ -1,0 +1,164 @@
+#gallery {
+  position: absolute;
+  inset: 0;
+  z-index: 300;
+  background: rgba(40, 25, 12, 0.4);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+#gallery.open {
+  display: flex;
+  animation: fade 0.2s ease both;
+}
+.gal-card {
+  width: min(600px, 94vw);
+  height: min(92vh, 860px);
+  background: #ffffff;
+  border-radius: 28px;
+  box-shadow: 0 18px 50px rgba(40, 25, 12, 0.4);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform-origin: bottom right;
+  animation: pop 0.2s ease-out both;
+}
+@keyframes pop {
+  from {
+    transform: scale(0.75);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+#galTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 12px 12px 12px;
+}
+#closeGal {
+  flex: 0 0 auto;
+  order: 2;
+  width: 54px;
+  height: 54px;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 4px 10px rgba(60, 40, 20, 0.16);
+  font-size: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #c25b3a;
+}
+#closeGal:active {
+  transform: scale(0.9);
+}
+#tabs {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  gap: 6px;
+  padding: 0;
+}
+.tab {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 54px;
+  position: relative;
+  border: none;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 3px 8px rgba(60, 40, 20, 0.12);
+  font-size: 27px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease;
+}
+.tab:active {
+  transform: scale(0.9);
+}
+.tab.sel {
+  background: #4aa3ff;
+  transform: translateY(-3px) scale(1.06);
+  box-shadow: 0 8px 16px rgba(74, 163, 255, 0.5);
+}
+/* downward connector that points to the open grid below */
+.tab.sel:after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -9px;
+  transform: translateX(-50%);
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-top: 10px solid #4aa3ff;
+}
+
+#grid {
+  flex: 1 1 auto;
+  position: relative;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px 12px 14px 12px;
+  touch-action: pan-y;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(194, 91, 58, 0.45) transparent;
+}
+#grid::-webkit-scrollbar {
+  width: 10px;
+}
+#grid::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 6px 0;
+}
+#grid::-webkit-scrollbar-thumb {
+  background: rgba(194, 91, 58, 0.4);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+#grid::-webkit-scrollbar-thumb:hover {
+  background: rgba(194, 91, 58, 0.65);
+  background-clip: padding-box;
+}
+.cat-section {
+  scroll-margin-top: 0;
+}
+.cat-section + .cat-section {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 2px dashed rgba(120, 90, 60, 0.18);
+}
+.cat-cells {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
+  gap: 8px;
+}
+.cell {
+  aspect-ratio: 1 / 1;
+  border: none;
+  background: transparent;
+  font-size: 52px;
+  line-height: 1;
+  border-radius: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+.cell:active {
+  transform: scale(0.82);
+  background: rgba(255, 255, 255, 0.6);
+}

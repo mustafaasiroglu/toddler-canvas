@@ -3,45 +3,140 @@ import "./Toolbar.css";
 
 interface ToolbarProps {
   tool: Tool;
-  showHint: boolean;
-  currentColor: string;
-  onPaint: () => void;
+  color: string;
+  penColors: string[];
+  rainbowColor: string;
+  onPickPen: (hex: string) => void;
+  onRainbow: () => void;
   onEmoji: () => void;
   onEraser: () => void;
 }
 
-export function Toolbar({ tool, showHint, currentColor, onPaint, onEmoji, onEraser }: ToolbarProps) {
-  const drawing = tool === "paint" || tool === "eraser";
+export function Toolbar({
+  tool,
+  color,
+  penColors,
+  rainbowColor,
+  onPickPen,
+  onRainbow,
+  onEmoji,
+  onEraser,
+}: ToolbarProps) {
+  const painting = tool === "paint";
+  const onPreset = painting && penColors.includes(color);
   return (
-    <div id="toolbar" className={drawing ? "hasactive" : undefined}>
-      <button
-        className={"tool tool-small" + (tool === "paint" ? " active" : "")}
-        aria-label="paint"
-        onClick={onPaint}
-      >
-        🖌️
-        <span id="paintDot" style={{ background: currentColor }} />
-      </button>
+    <div id="toolbar" className={tool === "paint" || tool === "eraser" ? "hasactive" : undefined}>
+      <div className="tool-section">
+        {penColors.map((hex) => (
+          <button
+            key={hex}
+            className={"tool tool-pen" + (painting && color === hex ? " active" : "")}
+            aria-label={"pen " + hex}
+            onClick={() => onPickPen(hex)}
+          >
+            <svg className="penIcon" viewBox="0 0 44 70" aria-hidden="true">
+              {/* barrel reaching up out of view */}
+              <rect
+                x="13"
+                y="0"
+                width="18"
+                height="38"
+                rx="4"
+                fill="#eef1f5"
+                stroke="#c4cad1"
+                strokeWidth="1.5"
+              />
+              {/* collar band */}
+              <rect
+                x="11.5"
+                y="35"
+                width="21"
+                height="7"
+                rx="2.5"
+                fill="#d9dee4"
+                stroke="#c4cad1"
+                strokeWidth="1"
+              />
+              {/* big colored marker tip */}
+              <path
+                d="M12 41 H32 L26.5 63 Q22 68 17.5 63 Z"
+                fill={hex}
+                stroke="rgba(0,0,0,0.12)"
+                strokeWidth="1"
+              />
+              {/* soft highlight on the tip */}
+              <path d="M16 42 L19 42 L17.5 60 Z" fill="rgba(255,255,255,0.35)" />
+            </svg>
+          </button>
+        ))}
 
-      <button
-        className={"tool tool-emoji" + (showHint ? " hint" : "")}
-        aria-label="emoji"
-        onClick={onEmoji}
-      >
+        <button
+          className={"tool tool-rainbow" + (painting && !onPreset ? " active" : "")}
+          aria-label="rainbow pen"
+          onClick={onRainbow}
+        >
+          <svg className="penIcon" viewBox="0 0 44 70" aria-hidden="true">
+            <defs>
+              <linearGradient id="rainbowBarrel" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#ff5a5f" />
+                <stop offset="20%" stopColor="#ff9f43" />
+                <stop offset="40%" stopColor="#ffd93d" />
+                <stop offset="60%" stopColor="#4cd964" />
+                <stop offset="80%" stopColor="#4aa3ff" />
+                <stop offset="100%" stopColor="#a66bff" />
+              </linearGradient>
+            </defs>
+            {/* barrel stays rainbow */}
+            <rect
+              x="13"
+              y="0"
+              width="18"
+              height="38"
+              rx="4"
+              fill="url(#rainbowBarrel)"
+              stroke="#c4cad1"
+              strokeWidth="1.5"
+            />
+            {/* collar band */}
+            <rect
+              x="11.5"
+              y="35"
+              width="21"
+              height="7"
+              rx="2.5"
+              fill="#d9dee4"
+              stroke="#c4cad1"
+              strokeWidth="1"
+            />
+            {/* tip shows the selected color */}
+            <path
+              d="M12 41 H32 L26.5 63 Q22 68 17.5 63 Z"
+              fill={rainbowColor}
+              stroke="rgba(0,0,0,0.12)"
+              strokeWidth="1"
+            />
+            <path d="M16 42 L19 42 L17.5 60 Z" fill="rgba(255,255,255,0.35)" />
+          </svg>
+        </button>
+
+        <button
+          className={"tool tool-eraser" + (tool === "eraser" ? " active" : "")}
+          aria-label="eraser"
+          onClick={onEraser}
+        >
+          🧽
+        </button>
+      </div>
+
+      <span className="tool-divider" aria-hidden="true" />
+
+      <button className="tool tool-emoji" aria-label="emoji" onClick={onEmoji}>
         <div className="emojiIcon">
           <span>😀</span>
-          <span>😍</span>
+          <span>🌳</span>
           <span>🚗</span>
           <span>⭐</span>
         </div>
-      </button>
-
-      <button
-        className={"tool tool-small" + (tool === "eraser" ? " active" : "")}
-        aria-label="eraser"
-        onClick={onEraser}
-      >
-        🧽
       </button>
     </div>
   );

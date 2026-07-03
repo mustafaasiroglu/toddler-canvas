@@ -1,0 +1,88 @@
+/* The interactive stage owned by CanvasEngine. */
+.stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* Holds emojis AND drawing segments interleaved by add order (add order = z order). */
+.stage-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  touch-action: none;
+}
+
+/* Each freehand drawing segment canvas. */
+.seg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Transparent overlay that captures drawing / erasing gestures. */
+.stage-input {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  touch-action: none;
+  pointer-events: none;
+}
+
+.emoji {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 96px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: center center;
+  will-change: transform;
+  cursor: grab;
+}
+.emoji .glyph {
+  font-size: 74px;
+  line-height: 1;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.18));
+  transform: scale(1);
+}
+.emoji.grab .glyph {
+  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.28));
+}
+.emoji .glyph.pop {
+  animation: pop 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.emoji .glyph.tap {
+  animation: tap 0.22s ease both;
+}
+.emoji .glyph.bubble {
+  transition: transform 0.26s ease, opacity 0.26s ease;
+  transform: scale(1.7);
+  opacity: 0;
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(0);
+  }
+  60% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes tap {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.16);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

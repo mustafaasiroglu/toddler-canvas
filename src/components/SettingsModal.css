@@ -1,0 +1,207 @@
+#settingsOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 400;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(40, 26, 14, 0.42);
+  backdrop-filter: blur(4px);
+  padding: calc(8px + env(safe-area-inset-top)) 8px calc(8px + env(safe-area-inset-bottom)) 8px;
+}
+#settingsOverlay.open {
+  display: flex;
+  animation: fade 0.18s ease both;
+}
+.sheet {
+  width: 100%;
+  max-width: 640px;
+  max-height: 100%;
+  overflow-y: auto;
+  background: #fffaf3;
+  border-radius: 26px;
+  box-shadow: 0 18px 50px rgba(40, 26, 14, 0.35);
+  padding: 22px 20px;
+}
+.sheet h2 {
+  margin: 0 0 4px 0;
+  font-size: 22px;
+  color: #5a3d28;
+  text-align: center;
+}
+.sheet p {
+  margin: 0 0 18px 0;
+  font-size: 15px;
+  color: #8a6f59;
+  text-align: center;
+}
+
+/* Grown-up gate */
+#gateQ {
+  font-size: 34px;
+  font-weight: 700;
+  color: #5a3d28;
+  text-align: center;
+  margin: 8px 0 18px;
+}
+#gateAns {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.gateBtn {
+  border: none;
+  border-radius: 18px;
+  padding: 18px 0;
+  font-size: 26px;
+  font-weight: 700;
+  background: #eaf4ff;
+  color: #2b6cb0;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.12s ease;
+}
+.gateBtn:active {
+  transform: scale(0.92);
+}
+
+/* Settings panel rows */
+.srow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(140, 111, 89, 0.18);
+}
+.srow:last-child {
+  border-bottom: none;
+}
+.srow .lbl {
+  font-size: 16px;
+  color: #5a3d28;
+  font-weight: 600;
+}
+.btnBig {
+  border: none;
+  border-radius: 16px;
+  padding: 12px 18px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+  transition: transform 0.12s ease;
+}
+.btnBig:active {
+  transform: scale(0.94);
+}
+.btnDanger {
+  background: #ffe1dc;
+  color: #c0392b;
+}
+.btnPrimary {
+  background: #4aa3ff;
+  color: #fff;
+}
+
+/* Toggle */
+.toggle {
+  position: relative;
+  width: 64px;
+  height: 34px;
+  border-radius: 999px;
+  border: none;
+  background: #d7c9ba;
+  cursor: pointer;
+  transition: background 0.18s ease;
+  flex: 0 0 auto;
+}
+.toggle .knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: left 0.18s ease;
+}
+.toggle.on {
+  background: #4cd964;
+}
+.toggle.on .knob {
+  left: 33px;
+}
+
+/* Palette editor */
+#palEditor {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 10px;
+  margin-top: 6px;
+  padding: 10px 2px 4px;
+  overflow-x: auto;
+  align-items: center;
+  touch-action: pan-x;
+}
+.palPipe {
+  flex: 0 0 auto;
+  width: 3px;
+  align-self: stretch;
+  min-height: 40px;
+  background: rgba(90, 70, 50, 0.28);
+  border-radius: 3px;
+  margin: 0 2px;
+}
+.palChip {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18);
+  cursor: grab;
+  flex: 0 0 auto;
+  touch-action: none;
+  transition: transform 0.16s ease;
+}
+.palChip.dragging {
+  cursor: grabbing;
+  z-index: 5;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+  transition: none;
+}
+.palChip .x {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #c0392b;
+  color: #fff;
+  font-size: 14px;
+  line-height: 22px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+}
+.palAdd {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 3px dashed #b79b82;
+  background: #fff;
+  font-size: 26px;
+  line-height: 1;
+  color: #b79b82;
+  cursor: pointer;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.palAdd input {
+  display: none;
+}

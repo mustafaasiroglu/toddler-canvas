@@ -1,12 +1,17 @@
+/**
+ * One ordered color list. The first three are shown directly on screen as
+ * their own pen buttons; the rest live inside the rainbow palette.
+ */
 export const DEFAULT_COLORS: string[] = [
-  "#ff5a5f",
+  "#ff5a5f", // on-screen pen 1
+  "#4aa3ff", // on-screen pen 2
+  "#4cd964", // on-screen pen 3
   "#ff9f43",
   "#ffd93d",
-  "#4cd964",
-  "#4aa3ff",
+  "#ff7fbf",
   "#a66bff",
+  "#00c2c7",
   "#333333",
-  "#ffffff",
 ];
 
 /** Perceived luminance check so light swatches get a visible border. */

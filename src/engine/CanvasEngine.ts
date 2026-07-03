@@ -33,10 +33,16 @@ interface Segment {
 export interface CanvasEngineOptions {
   /** Fired the very first time the user interacts, to dismiss any hint UI. */
   onFirstInteraction?: () => void;
+  /** Fired when a freehand stroke begins, e.g. to auto-hide the palette. */
+  onDrawStart?: () => void;
+  /** Fired when the user taps empty space (no emoji) while idle/select mode. */
+  onEmptyTap?: () => void;
+  /** Fired when the app should leave paint mode for select (none) mode. */
+  onSelectMode?: () => void;
 }
 
 const HALF = 48; // half of the 96px emoji box
-const BRUSH = 22; // thick brush for little fingers
+const BRUSH = 16; // thick brush for little fingers
 const ERASE = 46; // even thicker eraser
 
 /**
@@ -54,6 +60,7 @@ export class CanvasEngine {
   private layer: HTMLDivElement; // holds emojis + drawing segments (add order = z order)
   private overlay: HTMLCanvasElement; // transparent pointer-capture surface on top
   private overlayCtx: CanvasRenderingContext2D;
+  private eraserCursor: HTMLDivElement; // circle shown under the eraser
 
   private activeTool: Tool = "none";
   private currentColor = "#4aa3ff";
@@ -61,6 +68,9 @@ export class CanvasEngine {
   private segments: Segment[] = [];
   private currentSeg: Segment | null = null;
   private strokes = new Map<number, Point>();
+  private overlayEmoji = new Map<number, EmojiObj>(); // pointers dragging an emoji via the overlay
+  private paintFirstPending = false; // first interaction after the brush is selected
+  private pendingSelectMode = false; // switch to select (none) mode once this gesture ends
   private dpr = window.devicePixelRatio || 1;
   private prevCssW = window.innerWidth;
   private prevCssH = window.innerHeight;
@@ -80,8 +90,26 @@ export class CanvasEngine {
     this.overlay.className = "stage-input";
     this.overlayCtx = this.overlay.getContext("2d")!;
 
+    this.eraserCursor = document.createElement("div");
+    this.eraserCursor.className = "eraser-cursor";
+    const ec = this.eraserCursor.style;
+    ec.position = "absolute";
+    ec.left = "0";
+    ec.top = "0";
+    ec.width = ERASE + "px";
+    ec.height = ERASE + "px";
+    ec.marginLeft = -(ERASE / 2) + "px";
+    ec.marginTop = -(ERASE / 2) + "px";
+    ec.borderRadius = "50%";
+    ec.border = "1px solid rgba(120, 120, 120, 0.55)";
+    ec.boxSizing = "border-box";
+    ec.pointerEvents = "none";
+    ec.display = "none";
+    ec.zIndex = "60";
+
     this.stage.appendChild(this.layer);
     this.stage.appendChild(this.overlay);
+    this.stage.appendChild(this.eraserCursor);
 
     this.sizeAll();
 
@@ -94,17 +122,33 @@ export class CanvasEngine {
     // page-level guards + resize
     window.addEventListener("resize", this.onResize);
     window.addEventListener("orientationchange", this.onOrientation);
-    this.stage.addEventListener("pointerdown", this.killHint);
+    this.stage.addEventListener("pointerdown", this.onStageDown);
   }
 
   /* ---------------- public API ---------------- */
 
   setTool(t: Tool): void {
     this.activeTool = t;
+    this.paintFirstPending = t === "paint";
+    if (t !== "paint") this.pendingSelectMode = false;
     const drawing = t === "paint" || t === "eraser";
     this.overlay.style.pointerEvents = drawing ? "auto" : "none";
     this.layer.style.pointerEvents = drawing ? "none" : "auto";
     if (!drawing) this.audio.stopBrush();
+    if (t !== "eraser") {
+      this.audio.stopEraser();
+      this.hideEraserCursor();
+    }
+  }
+
+  private moveEraserCursor(p: Point): void {
+    const s = this.eraserCursor.style;
+    s.display = "block";
+    s.transform = `translate(${p.x}px, ${p.y}px)`;
+  }
+
+  private hideEraserCursor(): void {
+    this.eraserCursor.style.display = "none";
   }
 
   setColor(hex: string): void {
@@ -161,7 +205,7 @@ export class CanvasEngine {
   destroy(): void {
     window.removeEventListener("resize", this.onResize);
     window.removeEventListener("orientationchange", this.onOrientation);
-    this.stage.removeEventListener("pointerdown", this.killHint);
+    this.stage.removeEventListener("pointerdown", this.onStageDown);
     this.overlay.removeEventListener("pointerdown", this.onInputDown);
     this.overlay.removeEventListener("pointermove", this.onInputMove);
     this.overlay.removeEventListener("pointerup", this.onInputUp);
@@ -292,6 +336,7 @@ export class CanvasEngine {
     this.audio.ensure();
     const p: Point = { x: e.clientX, y: e.clientY };
     if (this.activeTool === "eraser") {
+      this.moveEraserCursor(p);
       const hit = this.emojiAt(p.x, p.y);
       if (hit) {
         this.removeEmoji(hit);
@@ -299,6 +344,21 @@ export class CanvasEngine {
       }
     }
     if (this.activeTool !== "paint" && this.activeTool !== "eraser") return;
+    // Only the FIRST interaction after selecting the brush treats an emoji
+    // specially: tapping an emoji leaves paint mode for select (none) mode;
+    // tapping empty space just draws. Every later tap simply draws.
+    if (this.activeTool === "paint" && (this.paintFirstPending || this.pendingSelectMode)) {
+      const wasFirst = this.paintFirstPending;
+      this.paintFirstPending = false;
+      const hit = this.emojiAt(p.x, p.y);
+      if (hit) {
+        this.pendingSelectMode = true;
+        this.beginOverlayEmoji(hit, e, p);
+        return;
+      }
+      // Additional pointers during a select-mode gesture must not draw.
+      if (!wasFirst) return;
+    }
     try {
       this.overlay.setPointerCapture(e.pointerId);
     } catch {
@@ -306,29 +366,67 @@ export class CanvasEngine {
     }
     this.strokes.set(e.pointerId, p);
     if (this.activeTool === "paint") {
+      this.opts.onDrawStart?.();
       this.drawDot(p);
       this.audio.startBrush();
     } else {
       this.eraseDot(p);
+      this.moveEraserCursor(p);
+      this.audio.startEraser();
+      this.audio.setEraserLevel(0.3);
     }
   };
 
   private onInputMove = (e: PointerEvent): void => {
+    const drag = this.overlayEmoji.get(e.pointerId);
+    if (drag) {
+      e.preventDefault();
+      this.onEmojiMove(drag, e);
+      return;
+    }
     let last = this.strokes.get(e.pointerId);
     if (!last) return;
     e.preventDefault();
     const evs = this.coalesced(e);
+    let moved = 0;
     for (const ev of evs) {
       const p: Point = { x: ev.clientX, y: ev.clientY };
       if (p.x === undefined || Number.isNaN(p.x)) continue;
-      if (this.activeTool === "paint") this.drawLine(last, p);
-      else this.eraseLine(last, p);
+      if (this.activeTool === "paint") {
+        this.drawLine(last, p);
+        moved += dist(last, p);
+      } else {
+        this.eraseLine(last, p);
+        moved += dist(last, p);
+      }
       last = p;
     }
     this.strokes.set(e.pointerId, last);
+    // Drive the brush volume from how fast the child is drawing.
+    if (this.activeTool === "paint") this.audio.setBrushLevel(clamp(moved / 45, 0, 1));
+    else if (this.activeTool === "eraser") {
+      this.moveEraserCursor(last);
+      this.audio.setEraserLevel(clamp(moved / 45, 0, 1));
+    }
   };
 
   private onInputUp = (e: PointerEvent): void => {
+    const drag = this.overlayEmoji.get(e.pointerId);
+    if (drag) {
+      this.overlayEmoji.delete(e.pointerId);
+      try {
+        this.overlay.releasePointerCapture(e.pointerId);
+      } catch {
+        /* ignore */
+      }
+      this.endOverlayEmoji(drag, e);
+      if (this.overlayEmoji.size === 0 && this.pendingSelectMode) {
+        this.pendingSelectMode = false;
+        this.setTool("none"); // leave paint for select mode after the gesture
+        this.opts.onSelectMode?.();
+      }
+      return;
+    }
     if (this.strokes.has(e.pointerId)) {
       this.strokes.delete(e.pointerId);
       try {
@@ -337,8 +435,38 @@ export class CanvasEngine {
         /* ignore */
       }
     }
-    if (this.strokes.size === 0) this.audio.stopBrush();
+    if (this.strokes.size === 0) {
+      this.audio.stopBrush();
+      this.audio.stopEraser();
+    }
+    this.hideEraserCursor();
   };
+
+  /** Start moving/pinching an emoji from the paint overlay (pointer already down). */
+  private beginOverlayEmoji(o: EmojiObj, e: PointerEvent, p: Point): void {
+    this.audio.stopBrush();
+    try {
+      this.overlay.setPointerCapture(e.pointerId);
+    } catch {
+      /* ignore */
+    }
+    this.overlayEmoji.set(e.pointerId, o);
+    o.pointers.set(e.pointerId, p);
+    o.el.classList.add("grab");
+    if (o.pointers.size === 1) {
+      o.glyph.classList.remove("tap");
+      void o.glyph.offsetWidth;
+      o.glyph.classList.add("tap");
+    }
+    this.captureBase(o);
+  }
+
+  /** Release a pointer that was dragging an emoji from the overlay. */
+  private endOverlayEmoji(o: EmojiObj, e: PointerEvent): void {
+    if (o.pointers.has(e.pointerId)) o.pointers.delete(e.pointerId);
+    if (o.pointers.size > 0) this.captureBase(o);
+    else o.el.classList.remove("grab");
+  }
 
   /* ---------------- emojis ---------------- */
 
@@ -442,9 +570,32 @@ export class CanvasEngine {
     return null;
   }
 
-  private killHint = (): void => {
-    if (this.firstTouch) return;
-    this.firstTouch = true;
-    this.opts.onFirstInteraction?.();
+  private onStageDown = (e: PointerEvent): void => {
+    if (!this.firstTouch) {
+      this.firstTouch = true;
+      this.opts.onFirstInteraction?.();
+    }
+    // In idle/select mode, tapping empty space (not an emoji) switches to paint
+    // and starts drawing immediately — no second tap needed.
+    if (this.activeTool === "none" && !this.emojiAt(e.clientX, e.clientY)) {
+      this.beginPaintFromIdle(e);
+    }
   };
+
+  /** Enter paint mode and begin a stroke from the current idle-mode pointerdown. */
+  private beginPaintFromIdle(e: PointerEvent): void {
+    this.setTool("paint"); // flips overlay pointer-events to auto synchronously
+    this.paintFirstPending = false; // this empty tap is the first interaction (a draw)
+    this.opts.onEmptyTap?.(); // keep React tool state in sync
+    const p: Point = { x: e.clientX, y: e.clientY };
+    try {
+      this.overlay.setPointerCapture(e.pointerId);
+    } catch {
+      /* ignore */
+    }
+    this.strokes.set(e.pointerId, p);
+    this.opts.onDrawStart?.();
+    this.drawDot(p);
+    this.audio.startBrush();
+  }
 }
