@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import type { Tool } from "../engine/CanvasEngine";
 import "./Toolbar.css";
 
@@ -10,7 +11,11 @@ interface ToolbarProps {
   onRainbow: () => void;
   onEmoji: () => void;
   onEraser: () => void;
+  onClearAll: () => void;
 }
+
+const HOLD_MS = 5000; // press-and-hold the eraser this long to wipe everything
+const RING = 2 * Math.PI * 46; // circumference of the progress ring (r = 46)
 
 export function Toolbar({
   tool,
@@ -21,9 +26,49 @@ export function Toolbar({
   onRainbow,
   onEmoji,
   onEraser,
+  onClearAll,
 }: ToolbarProps) {
   const painting = tool === "paint";
   const onPreset = painting && penColors.includes(color);
+
+  const [holdProgress, setHoldProgress] = useState(0);
+  const rafRef = useRef<number | null>(null);
+  const startRef = useRef(0);
+  const completedRef = useRef(false);
+
+  const cancelHold = () => {
+    if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    rafRef.current = null;
+    setHoldProgress(0);
+  };
+
+  const startHold = () => {
+    completedRef.current = false;
+    startRef.current = performance.now();
+    const tick = () => {
+      const p = Math.min(1, (performance.now() - startRef.current) / HOLD_MS);
+      setHoldProgress(p);
+      if (p >= 1) {
+        rafRef.current = null;
+        completedRef.current = true;
+        setHoldProgress(0);
+        onClearAll();
+        return;
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+  };
+
+  const handleEraserClick = () => {
+    // A completed long-press already cleared the canvas; don't also re-select.
+    if (completedRef.current) {
+      completedRef.current = false;
+      return;
+    }
+    onEraser();
+  };
+
   return (
     <div id="toolbar" className={tool === "paint" || tool === "eraser" ? "hasactive" : undefined}>
       <div className="tool-section">
@@ -122,9 +167,29 @@ export function Toolbar({
         <button
           className={"tool tool-eraser" + (tool === "eraser" ? " active" : "")}
           aria-label="eraser"
-          onClick={onEraser}
+          onClick={handleEraserClick}
+          onPointerDown={startHold}
+          onPointerUp={cancelHold}
+          onPointerLeave={cancelHold}
+          onPointerCancel={cancelHold}
+          onContextMenu={(e) => e.preventDefault()}
         >
           🧽
+          {holdProgress > 0 && (
+            <svg className="holdRing" viewBox="0 0 100 100" aria-hidden="true">
+              <circle className="holdRingTrack" cx="50" cy="50" r="46" />
+              <circle
+                className="holdRingFill"
+                cx="50"
+                cy="50"
+                r="46"
+                style={{
+                  strokeDasharray: RING,
+                  strokeDashoffset: RING * (1 - holdProgress),
+                }}
+              />
+            </svg>
+          )}
         </button>
       </div>
 

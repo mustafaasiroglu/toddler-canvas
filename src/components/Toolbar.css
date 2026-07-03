@@ -86,6 +86,33 @@
   animation: none;
 }
 
+/* press-and-hold the eraser to clear everything */
+.tool-eraser {
+  touch-action: none;
+  -webkit-touch-callout: none;
+}
+.holdRing {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  width: calc(100% + 8px);
+  height: calc(100% + 8px);
+  pointer-events: none;
+}
+.holdRingTrack {
+  fill: none;
+  stroke: rgba(192, 57, 43, 0.15);
+  stroke-width: 7;
+}
+.holdRingFill {
+  fill: none;
+  stroke: #c0392b;
+  stroke-width: 7;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: center;
+}
+
 /* keep every button visible on narrow phone screens */
 @media (max-width: 600px) {
   #toolbar {

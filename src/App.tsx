@@ -225,6 +225,7 @@ export default function App() {
         onRainbow={openRainbow}
         onEmoji={handleEmoji}
         onEraser={handleEraser}
+        onClearAll={clearCanvas}
       />
 
       <EmojiGallery open={galleryOpen} onClose={() => setGalleryOpen(false)} onPick={pickEmoji} />
