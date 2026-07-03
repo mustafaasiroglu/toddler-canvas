@@ -93,3 +93,23 @@ body {
 #settings:active {
   transform: scale(0.9);
 }
+
+#fullscreen {
+  position: absolute;
+  top: calc(12px + env(safe-area-inset-top));
+  left: 14px;
+  z-index: 110;
+  width: 52px;
+  height: 52px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+#fullscreen:active {
+  transform: scale(0.9);
+}

@@ -7,6 +7,15 @@ import { Palette } from "./components/Palette";
 import { EmojiGallery } from "./components/EmojiGallery";
 import { SettingsModal } from "./components/SettingsModal";
 
+// Safari uses webkit-prefixed Fullscreen API methods.
+type FsElement = HTMLElement & {
+  webkitRequestFullscreen?: () => void;
+};
+type FsDocument = Document & {
+  webkitFullscreenElement?: Element | null;
+  webkitExitFullscreen?: () => void;
+};
+
 export default function App() {
   const [tool, setTool] = useState<Tool>("paint");
   const [color, setColor] = useState(DEFAULT_COLORS[0]);
@@ -40,9 +49,15 @@ export default function App() {
 
   // Track fullscreen so the enter button hides while fullscreen is active.
   useEffect(() => {
-    const onFs = () => setFullscreen(!!document.fullscreenElement);
+    const doc = document as FsDocument;
+    const onFs = () =>
+      setFullscreen(!!(document.fullscreenElement || doc.webkitFullscreenElement));
     document.addEventListener("fullscreenchange", onFs);
-    return () => document.removeEventListener("fullscreenchange", onFs);
+    document.addEventListener("webkitfullscreenchange", onFs);
+    return () => {
+      document.removeEventListener("fullscreenchange", onFs);
+      document.removeEventListener("webkitfullscreenchange", onFs);
+    };
   }, []);
 
   const resume = useCallback(() => engineRef.current?.resume(), [engineRef]);
@@ -127,11 +142,21 @@ export default function App() {
   }, [resume]);
 
   const enterFullscreen = useCallback(() => {
-    document.documentElement.requestFullscreen?.().catch(() => {});
+    const el = document.documentElement as FsElement;
+    if (el.requestFullscreen) {
+      el.requestFullscreen().catch(() => {});
+    } else if (el.webkitRequestFullscreen) {
+      el.webkitRequestFullscreen();
+    }
   }, []);
 
   const exitFullscreen = useCallback(() => {
-    document.exitFullscreen?.().catch(() => {});
+    const doc = document as FsDocument;
+    if (doc.exitFullscreen) {
+      doc.exitFullscreen().catch(() => {});
+    } else if (doc.webkitExitFullscreen) {
+      doc.webkitExitFullscreen();
+    }
     setSettingsOpen(false);
   }, []);
 
@@ -146,6 +171,21 @@ export default function App() {
   return (
     <div id="app">
       <div className="stage" ref={stageRef} />
+
+      {!fullscreen && (
+        <button id="fullscreen" aria-label="fullscreen" onClick={enterFullscreen}>
+          <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+            <path
+              d="M4 9 V5 a1 1 0 0 1 1-1 h4 M20 9 V5 a1 1 0 0 0-1-1 h-4 M4 15 v4 a1 1 0 0 0 1 1 h4 M20 15 v4 a1 1 0 0 1-1 1 h-4"
+              fill="none"
+              stroke="#8a8f96"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      )}
 
       <button id="settings" aria-label="settings" onClick={openSettings}>
         <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
