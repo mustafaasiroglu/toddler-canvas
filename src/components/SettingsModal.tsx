@@ -6,6 +6,7 @@ interface SettingsModalProps {
   muted: boolean;
   colors: string[];
   fullscreen: boolean;
+  fullscreenSupported: boolean;
   onClose: () => void;
   onToggleSound: () => void;
   onClear: () => void;
@@ -43,6 +44,7 @@ export function SettingsModal({
   muted,
   colors,
   fullscreen,
+  fullscreenSupported,
   onClose,
   onToggleSound,
   onClear,
@@ -156,16 +158,18 @@ export function SettingsModal({
         <div className="sheet">
           <h2>Settings</h2>
 
-          <div className="srow">
-            <span className="lbl">Full screen</span>
-            <button
-              className={"toggle" + (fullscreen ? " on" : "")}
-              aria-label="full screen on/off"
-              onClick={fullscreen ? onExitFullscreen : onEnterFullscreen}
-            >
-              <span className="knob" />
-            </button>
-          </div>
+          {fullscreenSupported && (
+            <div className="srow">
+              <span className="lbl">Full screen</span>
+              <button
+                className={"toggle" + (fullscreen ? " on" : "")}
+                aria-label="full screen on/off"
+                onClick={fullscreen ? onExitFullscreen : onEnterFullscreen}
+              >
+                <span className="knob" />
+              </button>
+            </div>
+          )}
 
           <div className="srow">
             <span className="lbl">Sound Effects</span>

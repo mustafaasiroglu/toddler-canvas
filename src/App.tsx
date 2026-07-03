@@ -16,6 +16,13 @@ type FsDocument = Document & {
   webkitExitFullscreen?: () => void;
 };
 
+// iOS (all browsers use WebKit) has no Fullscreen API for regular elements,
+// so the button is hidden there. On iOS, "Add to Home Screen" gives fullscreen.
+const fullscreenSupported = (() => {
+  const el = document.documentElement as FsElement;
+  return !!(el.requestFullscreen || el.webkitRequestFullscreen);
+})();
+
 export default function App() {
   const [tool, setTool] = useState<Tool>("paint");
   const [color, setColor] = useState(DEFAULT_COLORS[0]);
@@ -172,7 +179,7 @@ export default function App() {
     <div id="app">
       <div className="stage" ref={stageRef} />
 
-      {!fullscreen && (
+      {fullscreenSupported && !fullscreen && (
         <button id="fullscreen" aria-label="fullscreen" onClick={enterFullscreen}>
           <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
             <path
@@ -227,6 +234,7 @@ export default function App() {
         muted={muted}
         colors={colors}
         fullscreen={fullscreen}
+        fullscreenSupported={fullscreenSupported}
         onClose={() => setSettingsOpen(false)}
         onToggleSound={() => setMuted((m) => !m)}
         onClear={clearCanvas}
