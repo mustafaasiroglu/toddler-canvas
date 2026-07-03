@@ -176,7 +176,7 @@ export class CanvasEngine {
       glyph,
       x: atX,
       y: atY,
-      scale: 1,
+      scale: 1.5,
       rot: 0,
       pointers: new Map(),
       base: null,
@@ -471,16 +471,9 @@ export class CanvasEngine {
   /* ---------------- emojis ---------------- */
 
   private applyTransform(o: EmojiObj): void {
-    o.el.style.transform =
-      "translate(" +
-      (o.x - HALF) +
-      "px," +
-      (o.y - HALF) +
-      "px) rotate(" +
-      o.rot +
-      "rad) scale(" +
-      o.scale +
-      ")";
+    o.el.style.left = o.x - HALF + "px";
+    o.el.style.top = o.y - HALF + "px";
+    o.el.style.transform = "rotate(" + o.rot + "rad) scale(" + o.scale + ")";
   }
 
   private captureBase(o: EmojiObj): void {
