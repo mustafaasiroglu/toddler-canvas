@@ -9,7 +9,6 @@ export function useCanvasEngine(
   onFirstInteraction?: () => void,
   onDrawStart?: () => void,
   onEmptyTap?: () => void,
-  onSelectMode?: () => void,
 ) {
   const stageRef = useRef<HTMLDivElement | null>(null);
   const engineRef = useRef<CanvasEngine | null>(null);
@@ -19,8 +18,6 @@ export function useCanvasEngine(
   drawRef.current = onDrawStart;
   const emptyRef = useRef(onEmptyTap);
   emptyRef.current = onEmptyTap;
-  const selectRef = useRef(onSelectMode);
-  selectRef.current = onSelectMode;
 
   useEffect(() => {
     if (!stageRef.current) return;
@@ -28,7 +25,6 @@ export function useCanvasEngine(
       onFirstInteraction: () => cbRef.current?.(),
       onDrawStart: () => drawRef.current?.(),
       onEmptyTap: () => emptyRef.current?.(),
-      onSelectMode: () => selectRef.current?.(),
     });
     engineRef.current = engine;
     return () => {

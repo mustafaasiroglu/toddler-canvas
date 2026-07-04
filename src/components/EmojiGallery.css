@@ -16,7 +16,7 @@
   animation: fade 0.2s ease both;
 }
 .gal-card {
-  width: min(600px, 94vw);
+  width: min(620px, 96vw);
   height: min(92vh, 860px);
   height: min(92dvh, 860px);
   max-height: 100%;
@@ -24,7 +24,7 @@
   border-radius: 28px;
   box-shadow: 0 18px 50px rgba(40, 25, 12, 0.4);
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   overflow: hidden;
   transform-origin: bottom right;
   animation: pop 0.2s ease-out both;
@@ -40,48 +40,60 @@
   }
 }
 
-#galTop {
+/* ---- Left sidebar ---- */
+#galSidebar {
+  width: 70px;
+  flex-shrink: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 12px 12px 12px 12px;
+  gap: 6px;
+  padding: 12px 8px 12px;
+  background: #f6f6f6;
+  border-right: 1.5px solid #e8e8e8;
+  overflow-y: auto;
+  scrollbar-width: none;
 }
+#galSidebar::-webkit-scrollbar {
+  display: none;
+}
+
 #closeGal {
-  flex: 0 0 auto;
-  order: 2;
-  width: 54px;
-  height: 54px;
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
   border: none;
   border-radius: 50%;
   background: #fff;
-  box-shadow: 0 4px 10px rgba(60, 40, 20, 0.16);
-  font-size: 28px;
+  box-shadow: 0 3px 8px rgba(60, 40, 20, 0.14);
+  font-size: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   color: #c25b3a;
+  margin-bottom: 4px;
 }
 #closeGal:active {
   transform: scale(0.9);
 }
+
 #tabs {
-  flex: 1 1 auto;
-  min-width: 0;
   display: flex;
+  flex-direction: column;
   gap: 6px;
-  padding: 0;
+  width: 100%;
+  align-items: center;
 }
 .tab {
-  flex: 1 1 0;
-  min-width: 0;
-  height: 54px;
+  width: 50px;
+  height: 50px;
   position: relative;
   border: none;
-  border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 3px 8px rgba(60, 40, 20, 0.12);
-  font-size: 27px;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(60, 40, 20, 0.10);
+  font-size: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -93,21 +105,10 @@
 }
 .tab.sel {
   background: #4aa3ff;
-  transform: translateY(-3px) scale(1.06);
-  box-shadow: 0 8px 16px rgba(74, 163, 255, 0.5);
-}
-/* downward connector that points to the open grid below */
-.tab.sel:after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: -9px;
-  transform: translateX(-50%);
-  border-left: 9px solid transparent;
-  border-right: 9px solid transparent;
-  border-top: 10px solid #4aa3ff;
+  box-shadow: 0 4px 12px rgba(74, 163, 255, 0.45);
 }
 
+/* ---- Right emoji grid ---- */
 #grid {
   flex: 1 1 auto;
   position: relative;
@@ -119,7 +120,7 @@
   scrollbar-color: rgba(194, 91, 58, 0.45) transparent;
 }
 #grid::-webkit-scrollbar {
-  width: 10px;
+  width: 8px;
 }
 #grid::-webkit-scrollbar-track {
   background: transparent;
@@ -145,14 +146,14 @@
 }
 .cat-cells {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
   gap: 8px;
 }
 .cell {
   aspect-ratio: 1 / 1;
   border: none;
   background: transparent;
-  font-size: 52px;
+  font-size: 48px;
   line-height: 1;
   border-radius: 20px;
   cursor: pointer;

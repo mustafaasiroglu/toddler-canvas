@@ -1,7 +1,7 @@
 import { AudioEngine } from "./audio";
 import { angle, centroid, clamp, dist, type Point } from "./geometry";
 
-export type Tool = "none" | "paint" | "eraser";
+export type Tool = "paint" | "eraser" | "emoji";
 
 interface EmojiBase {
   cx: number;
@@ -35,10 +35,8 @@ export interface CanvasEngineOptions {
   onFirstInteraction?: () => void;
   /** Fired when a freehand stroke begins, e.g. to auto-hide the palette. */
   onDrawStart?: () => void;
-  /** Fired when the user taps empty space (no emoji) while idle/select mode. */
+  /** Fired when the user taps empty space (no emoji) while in emoji mode, to switch to paint. */
   onEmptyTap?: () => void;
-  /** Fired when the app should leave paint mode for select (none) mode. */
-  onSelectMode?: () => void;
 }
 
 const HALF = 48; // half of the 96px emoji box
@@ -62,16 +60,12 @@ export class CanvasEngine {
   private overlayCtx: CanvasRenderingContext2D;
   private eraserCursor: HTMLDivElement; // circle shown under the eraser
 
-  private activeTool: Tool = "none";
+  private activeTool: Tool = "paint";
   private currentColor = "#4aa3ff";
   private emojis: EmojiObj[] = [];
   private segments: Segment[] = [];
   private currentSeg: Segment | null = null;
   private strokes = new Map<number, Point>();
-  private overlayEmoji = new Map<number, EmojiObj>(); // pointers dragging an emoji via the overlay
-  private paintFirstPending = false; // first interaction after the brush is selected
-  private pendingSelectMode = false; // switch to select (none) mode once this gesture ends
-  private lockIdlePaint = false; // keep select/drag mode after adding an emoji
   private dpr = window.devicePixelRatio || 1;
   private prevCssW = window.innerWidth;
   private prevCssH = window.innerHeight;
@@ -130,9 +124,6 @@ export class CanvasEngine {
 
   setTool(t: Tool): void {
     this.activeTool = t;
-    this.paintFirstPending = t === "paint";
-    if (t === "paint") this.lockIdlePaint = false;
-    if (t !== "paint") this.pendingSelectMode = false;
     const drawing = t === "paint" || t === "eraser";
     this.overlay.style.pointerEvents = drawing ? "auto" : "none";
     this.layer.style.pointerEvents = drawing ? "none" : "auto";
@@ -188,7 +179,6 @@ export class CanvasEngine {
     this.applyTransform(o);
     this.sealSegment(); // next stroke starts a fresh layer above this emoji
     this.audio.playPop();
-    this.lockIdlePaint = true;
     window.setTimeout(() => glyph.classList.remove("pop"), 420);
 
     el.addEventListener("pointerdown", (e) => this.onEmojiDown(o, e));
@@ -347,21 +337,6 @@ export class CanvasEngine {
       }
     }
     if (this.activeTool !== "paint" && this.activeTool !== "eraser") return;
-    // Only the FIRST interaction after selecting the brush treats an emoji
-    // specially: tapping an emoji leaves paint mode for select (none) mode;
-    // tapping empty space just draws. Every later tap simply draws.
-    if (this.activeTool === "paint" && (this.paintFirstPending || this.pendingSelectMode)) {
-      const wasFirst = this.paintFirstPending;
-      this.paintFirstPending = false;
-      const hit = this.emojiAt(p.x, p.y);
-      if (hit) {
-        this.pendingSelectMode = true;
-        this.beginOverlayEmoji(hit, e, p);
-        return;
-      }
-      // Additional pointers during a select-mode gesture must not draw.
-      if (!wasFirst) return;
-    }
     try {
       this.overlay.setPointerCapture(e.pointerId);
     } catch {
@@ -381,12 +356,6 @@ export class CanvasEngine {
   };
 
   private onInputMove = (e: PointerEvent): void => {
-    const drag = this.overlayEmoji.get(e.pointerId);
-    if (drag) {
-      e.preventDefault();
-      this.onEmojiMove(drag, e);
-      return;
-    }
     let last = this.strokes.get(e.pointerId);
     if (!last) return;
     e.preventDefault();
@@ -414,22 +383,6 @@ export class CanvasEngine {
   };
 
   private onInputUp = (e: PointerEvent): void => {
-    const drag = this.overlayEmoji.get(e.pointerId);
-    if (drag) {
-      this.overlayEmoji.delete(e.pointerId);
-      try {
-        this.overlay.releasePointerCapture(e.pointerId);
-      } catch {
-        /* ignore */
-      }
-      this.endOverlayEmoji(drag, e);
-      if (this.overlayEmoji.size === 0 && this.pendingSelectMode) {
-        this.pendingSelectMode = false;
-        this.setTool("none"); // leave paint for select mode after the gesture
-        this.opts.onSelectMode?.();
-      }
-      return;
-    }
     if (this.strokes.has(e.pointerId)) {
       this.strokes.delete(e.pointerId);
       try {
@@ -444,32 +397,6 @@ export class CanvasEngine {
     }
     this.hideEraserCursor();
   };
-
-  /** Start moving/pinching an emoji from the paint overlay (pointer already down). */
-  private beginOverlayEmoji(o: EmojiObj, e: PointerEvent, p: Point): void {
-    this.audio.stopBrush();
-    try {
-      this.overlay.setPointerCapture(e.pointerId);
-    } catch {
-      /* ignore */
-    }
-    this.overlayEmoji.set(e.pointerId, o);
-    o.pointers.set(e.pointerId, p);
-    o.el.classList.add("grab");
-    if (o.pointers.size === 1) {
-      o.glyph.classList.remove("tap");
-      void o.glyph.offsetWidth;
-      o.glyph.classList.add("tap");
-    }
-    this.captureBase(o);
-  }
-
-  /** Release a pointer that was dragging an emoji from the overlay. */
-  private endOverlayEmoji(o: EmojiObj, e: PointerEvent): void {
-    if (o.pointers.has(e.pointerId)) o.pointers.delete(e.pointerId);
-    if (o.pointers.size > 0) this.captureBase(o);
-    else o.el.classList.remove("grab");
-  }
 
   /* ---------------- emojis ---------------- */
 
@@ -496,7 +423,7 @@ export class CanvasEngine {
   }
 
   private onEmojiDown(o: EmojiObj, e: PointerEvent): void {
-    if (this.activeTool !== "none") return; // only movable in idle mode
+    if (this.activeTool !== "emoji") return; // only movable in emoji mode
     e.preventDefault();
     try {
       o.el.setPointerCapture(e.pointerId);
@@ -571,18 +498,16 @@ export class CanvasEngine {
       this.firstTouch = true;
       this.opts.onFirstInteraction?.();
     }
-    // In idle/select mode, tapping empty space (not an emoji) normally switches
-    // to paint and starts drawing immediately — no second tap needed, unless an
-    // emoji was just added and we are waiting for explicit pen selection.
-    if (this.activeTool === "none" && !this.lockIdlePaint && !this.emojiAt(e.clientX, e.clientY)) {
+    // In emoji mode, tapping empty space (not an emoji) switches to paint mode
+    // and starts drawing immediately.
+    if (this.activeTool === "emoji" && !this.emojiAt(e.clientX, e.clientY)) {
       this.beginPaintFromIdle(e);
     }
   };
 
-  /** Enter paint mode and begin a stroke from the current idle-mode pointerdown. */
+  /** Enter paint mode and begin a stroke from the current emoji-mode pointerdown. */
   private beginPaintFromIdle(e: PointerEvent): void {
     this.setTool("paint"); // flips overlay pointer-events to auto synchronously
-    this.paintFirstPending = false; // this empty tap is the first interaction (a draw)
     this.opts.onEmptyTap?.(); // keep React tool state in sync
     const p: Point = { x: e.clientX, y: e.clientY };
     try {
