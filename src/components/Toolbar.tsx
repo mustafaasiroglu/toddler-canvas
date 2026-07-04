@@ -14,7 +14,7 @@ interface ToolbarProps {
   onClearAll: () => void;
 }
 
-const HOLD_MS = 5000; // press-and-hold the eraser this long to wipe everything
+const HOLD_MS = 2000; // press-and-hold the eraser this long to wipe everything
 const RING = 2 * Math.PI * 46; // circumference of the progress ring (r = 46)
 
 export function Toolbar({
