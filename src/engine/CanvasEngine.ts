@@ -573,6 +573,7 @@ export class CanvasEngine {
     }
     // In idle/select mode, tapping empty space (not an emoji) normally switches
     // to paint and starts drawing immediately — no second tap needed.
+    // After picking an emoji, stay in drag mode until the pen is explicitly selected.
     if (this.activeTool === "none" && this.lockIdlePaint) return;
     if (this.activeTool === "none" && !this.emojiAt(e.clientX, e.clientY)) {
       this.beginPaintFromIdle(e);
