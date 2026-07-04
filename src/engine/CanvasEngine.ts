@@ -71,6 +71,7 @@ export class CanvasEngine {
   private overlayEmoji = new Map<number, EmojiObj>(); // pointers dragging an emoji via the overlay
   private paintFirstPending = false; // first interaction after the brush is selected
   private pendingSelectMode = false; // switch to select (none) mode once this gesture ends
+  private lockIdlePaint = false; // keep select/drag mode after adding an emoji
   private dpr = window.devicePixelRatio || 1;
   private prevCssW = window.innerWidth;
   private prevCssH = window.innerHeight;
@@ -130,6 +131,7 @@ export class CanvasEngine {
   setTool(t: Tool): void {
     this.activeTool = t;
     this.paintFirstPending = t === "paint";
+    if (t === "paint") this.lockIdlePaint = false;
     if (t !== "paint") this.pendingSelectMode = false;
     const drawing = t === "paint" || t === "eraser";
     this.overlay.style.pointerEvents = drawing ? "auto" : "none";
@@ -186,6 +188,7 @@ export class CanvasEngine {
     this.applyTransform(o);
     this.sealSegment(); // next stroke starts a fresh layer above this emoji
     this.audio.playPop();
+    this.lockIdlePaint = true;
     window.setTimeout(() => glyph.classList.remove("pop"), 420);
 
     el.addEventListener("pointerdown", (e) => this.onEmojiDown(o, e));
@@ -568,9 +571,10 @@ export class CanvasEngine {
       this.firstTouch = true;
       this.opts.onFirstInteraction?.();
     }
-    // In idle/select mode, tapping empty space (not an emoji) switches to paint
-    // and starts drawing immediately — no second tap needed.
-    if (this.activeTool === "none" && !this.emojiAt(e.clientX, e.clientY)) {
+    // In idle/select mode, tapping empty space (not an emoji) normally switches
+    // to paint and starts drawing immediately — no second tap needed, unless an
+    // emoji was just added and we are waiting for explicit pen selection.
+    if (this.activeTool === "none" && !this.lockIdlePaint && !this.emojiAt(e.clientX, e.clientY)) {
       this.beginPaintFromIdle(e);
     }
   };
