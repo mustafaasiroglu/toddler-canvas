@@ -99,7 +99,11 @@ export function EmojiGallery({ open, customStickers, onClose, onPick }: EmojiGal
             >
               <div className="cat-cells">
                 {cat.items.map((ch, i) => (
-                  <button key={i} className="cell" onClick={() => onPick(ch)}>
+                  <button
+                    key={ch.startsWith("data:") ? `${ch.slice(0, 30)}-${ch.length}` : ch + i}
+                    className="cell"
+                    onClick={() => onPick(ch)}
+                  >
                     {ch.startsWith("data:") ? (
                       <img src={ch} alt="sticker" className="cell-img" />
                     ) : (

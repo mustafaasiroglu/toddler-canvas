@@ -53,7 +53,11 @@ function resizeImageFile(file: File, size: number): Promise<string> {
       const canvas = document.createElement("canvas");
       canvas.width = Math.round(img.width * scale);
       canvas.height = Math.round(img.height * scale);
-      const ctx = canvas.getContext("2d")!;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        reject(new Error("Could not get 2D context"));
+        return;
+      }
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
       resolve(canvas.toDataURL("image/png"));
     };
@@ -167,8 +171,8 @@ export function SettingsModal({
       try {
         const dataUrl = await resizeImageFile(file, 128);
         onAddCustomSticker(dataUrl);
-      } catch {
-        /* skip unreadable files */
+      } catch (err) {
+        console.warn("Custom sticker: could not process image file", err);
       }
     }
     e.target.value = ""; // allow re-selecting the same file
@@ -310,8 +314,11 @@ export function SettingsModal({
             </label>
             {customStickers.length > 0 && (
               <div className="stickerChips">
-                {customStickers.map((s, i) => (
-                  <div key={i} className="stickerChip">
+                {customStickers.map((s) => (
+                  <div
+                    key={s.startsWith("data:") ? `${s.slice(0, 30)}-${s.length}` : s}
+                    className="stickerChip"
+                  >
                     {s.startsWith("data:") ? (
                       <img src={s} alt="sticker" className="stickerThumb" />
                     ) : (
