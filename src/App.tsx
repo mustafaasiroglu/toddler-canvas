@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Tool } from "./engine/CanvasEngine";
 import { DEFAULT_COLORS } from "./data/colors";
 import { useCanvasEngine } from "./hooks/useCanvasEngine";
@@ -6,6 +6,7 @@ import { Toolbar } from "./components/Toolbar";
 import { Palette } from "./components/Palette";
 import { EmojiGallery } from "./components/EmojiGallery";
 import { SettingsModal } from "./components/SettingsModal";
+import { ToolHint } from "./components/ToolHint";
 
 // Safari uses webkit-prefixed Fullscreen API methods.
 type FsElement = HTMLElement & {
@@ -23,6 +24,10 @@ const fullscreenSupported = (() => {
   return !!(el.requestFullscreen || el.webkitRequestFullscreen);
 })();
 
+// Duration the tool hint animation plays before being unmounted (in ms).
+// The CSS animation itself is 1 s; this adds a small buffer.
+const HINT_DISPLAY_DURATION_MS = 1100;
+
 export default function App() {
   const [tool, setTool] = useState<Tool>("paint");
   const [color, setColor] = useState(DEFAULT_COLORS[0]);
@@ -33,6 +38,9 @@ export default function App() {
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
+  const [showHint, setShowHint] = useState(false);
+  const [hintIsRainbow, setHintIsRainbow] = useState(false);
+  const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { stageRef, engineRef } = useCanvasEngine(
     undefined,
@@ -65,7 +73,29 @@ export default function App() {
     };
   }, []);
 
+  // Clean up the hint timer when the component unmounts to prevent stale state updates.
+  useEffect(() => {
+    return () => {
+      if (hintTimerRef.current !== null) clearTimeout(hintTimerRef.current);
+    };
+  }, []);
+
   const resume = useCallback(() => engineRef.current?.resume(), [engineRef]);
+
+  const triggerHint = useCallback(
+    (rainbow: boolean) => {
+      if (hintTimerRef.current !== null) clearTimeout(hintTimerRef.current);
+      setHintIsRainbow(rainbow);
+      setShowHint(false); // unmount first so the animation restarts
+      // Use a microtask gap so React flushes the unmount before remounting
+      requestAnimationFrame(() => {
+        setShowHint(true);
+        engineRef.current?.audio.playPop();
+        hintTimerRef.current = setTimeout(() => setShowHint(false), HINT_DISPLAY_DURATION_MS);
+      });
+    },
+    [engineRef],
+  );
 
   const pickPen = useCallback(
     (hex: string) => {
@@ -73,8 +103,9 @@ export default function App() {
       setColor(hex);
       setTool("paint");
       setPaletteOpen(false); // fixed-color pens don't need the palette
+      triggerHint(false);
     },
-    [resume],
+    [resume, triggerHint],
   );
 
   const openRainbow = useCallback(() => {
@@ -82,12 +113,14 @@ export default function App() {
     setColor(rainbowColor); // restore the last palette color (or the default first one)
     setTool("paint");
     setPaletteOpen(true); // the rainbow pen opens the full color palette
-  }, [resume, rainbowColor]);
+    triggerHint(true);
+  }, [resume, rainbowColor, triggerHint]);
 
   const handleEraser = useCallback(() => {
     resume();
     setTool("eraser");
-  }, [resume]);
+    triggerHint(false);
+  }, [resume, triggerHint]);
 
   const handleEmoji = useCallback(() => {
     resume();
@@ -177,6 +210,15 @@ export default function App() {
   return (
     <div id="app">
       <div className="stage" ref={stageRef} />
+
+      {showHint && (
+        <ToolHint
+          tool={tool}
+          color={color}
+          rainbowColor={rainbowColor}
+          isRainbow={hintIsRainbow}
+        />
+      )}
 
       {fullscreenSupported && !fullscreen && (
         <button id="fullscreen" aria-label="fullscreen" onClick={enterFullscreen}>
