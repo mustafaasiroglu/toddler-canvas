@@ -195,7 +195,7 @@ export function Toolbar({
 
       <span className="tool-divider" aria-hidden="true" />
 
-      <button className="tool tool-emoji" aria-label="emoji" onClick={onEmoji}>
+      <button className={"tool tool-emoji" + (tool === "emoji" ? " active" : "")} aria-label="emoji" onClick={onEmoji}>
         <div className="emojiIcon">
           <span>😀</span>
           <span>🌳</span>

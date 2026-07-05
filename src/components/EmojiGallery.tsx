@@ -54,7 +54,12 @@ export function EmojiGallery({ open, onClose, onPick }: EmojiGalleryProps) {
   return (
     <div id="gallery" className="open" onClick={onClose}>
       <div className="gal-card" onClick={(e) => e.stopPropagation()}>
-        <div id="galTop">
+
+        {/* Left sidebar: close button + vertical category tabs */}
+        <div id="galSidebar">
+          <button id="closeGal" aria-label="close" onClick={onClose}>
+            ✕
+          </button>
           <div id="tabs">
             {CATEGORIES.map((cat, idx) => (
               <button
@@ -66,11 +71,9 @@ export function EmojiGallery({ open, onClose, onPick }: EmojiGalleryProps) {
               </button>
             ))}
           </div>
-          <button id="closeGal" aria-label="close" onClick={onClose}>
-            ✕
-          </button>
         </div>
 
+        {/* Right: scrollable emoji grid */}
         <div id="grid" ref={scrollRef} onScroll={handleScroll}>
           {CATEGORIES.map((cat, idx) => (
             <section

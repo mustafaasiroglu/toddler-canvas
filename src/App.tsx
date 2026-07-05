@@ -37,8 +37,7 @@ export default function App() {
   const { stageRef, engineRef } = useCanvasEngine(
     undefined,
     () => setPaletteOpen(false), // drawing on the canvas auto-hides the palette
-    () => setTool("paint"), // tapping empty space while idle jumps to paint mode
-    () => setTool("none"), // first-tap on an emoji leaves paint for select mode
+    () => setTool("paint"), // tapping empty space while in emoji mode jumps to paint mode
   );
 
   // Keep the imperative engine in sync with declarative React state.
@@ -93,13 +92,14 @@ export default function App() {
 
   const handleEmoji = useCallback(() => {
     resume();
+    setTool("emoji");
     setGalleryOpen(true);
   }, [resume]);
 
   const pickEmoji = useCallback(
     (char: string) => {
       setGalleryOpen(false);
-      setTool("none");
+      setTool("emoji");
       engineRef.current?.addEmoji(char);
     },
     [engineRef],
