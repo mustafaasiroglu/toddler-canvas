@@ -141,9 +141,25 @@
   gap: 10px;
   margin-top: 6px;
   padding: 10px 2px 4px;
-  overflow-x: auto;
+  overflow-x: scroll;
   align-items: center;
   touch-action: pan-x;
+  /* Always show the horizontal scrollbar so drag-to-reorder and
+     scroll gestures don't get confused with each other. */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(90, 70, 50, 0.55) rgba(90, 70, 50, 0.14);
+}
+#palEditor::-webkit-scrollbar {
+  height: 10px;
+  -webkit-appearance: none;
+}
+#palEditor::-webkit-scrollbar-track {
+  background: rgba(90, 70, 50, 0.14);
+  border-radius: 6px;
+}
+#palEditor::-webkit-scrollbar-thumb {
+  background: rgba(90, 70, 50, 0.55);
+  border-radius: 6px;
 }
 .palPipe {
   flex: 0 0 auto;

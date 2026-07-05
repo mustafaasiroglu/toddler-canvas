@@ -42,6 +42,11 @@
   transform: scale(1.18);
   box-shadow: var(--ring);
 }
+@media (max-width: 480px) {
+  #palette {
+    bottom: calc(100px + env(safe-area-inset-bottom));
+  }
+}
 @media (max-width: 420px) {
   .swatch {
     width: 38px;

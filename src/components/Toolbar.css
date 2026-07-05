@@ -7,7 +7,7 @@
   display: flex;
   gap: 18px;
   align-items: center;
-  padding: 16px 20px;
+  padding: 11px 14px;
   background: rgba(255, 255, 255, 0.55);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
@@ -30,14 +30,14 @@
 
 .tool {
   position: relative;
-  width: 64px;
-  height: 64px;
+  width: 58px;
+  height: 58px;
   box-sizing: border-box;
   border: 4px solid #fff;
   border-radius: 50%;
   background: #fff;
   box-shadow: 0 4px 10px rgba(60, 40, 20, 0.14);
-  font-size: 34px;
+  font-size: 30px;
   line-height: 1;
   display: flex;
   align-items: center;
@@ -45,20 +45,15 @@
   transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, opacity 0.18s ease;
   cursor: pointer;
   touch-action: manipulation;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
 }
 .tool-emoji {
-  width: 74px !important;
-  height: 74px !important;
+  width: 68px !important;
+  height: 68px !important;
   border-radius: 50%;
-  background: radial-gradient(
-    circle at 18% 18%,
-    rgba(255, 217, 61, 0.5) 0%,
-    rgba(255, 159, 67, 0.5) 22%,
-    rgba(255, 90, 95, 0.5) 45%,
-    rgba(76, 217, 100, 0.5) 65%,
-    rgba(74, 163, 255, 0.5) 82%,
-    rgba(166, 107, 255, 0.5) 100%
-  );
+  background: #fff;
+  --orbit-r: 18px;
 }
 .tool-pen,
 .tool-rainbow {
@@ -75,7 +70,7 @@
 .emojiIcon {
   position: absolute;
   inset: 0;
-  font-size: 19px;
+  font-size: 22px;
   line-height: 1;
 }
 /* the four emojis ride a circular orbit but each one stays upright */
@@ -94,10 +89,10 @@
 }
 @keyframes emojiOrbit {
   from {
-    transform: rotate(0deg) translateY(-15px);
+    transform: rotate(0deg) translateY(calc(-1 * var(--orbit-r, 12px)));
   }
   to {
-    transform: rotate(360deg) translateY(-15px);
+    transform: rotate(360deg) translateY(calc(-1 * var(--orbit-r, 12px)));
   }
 }
 @keyframes emojiUpright {
@@ -182,7 +177,7 @@
 }
 
 /* keep every button visible on narrow phone screens */
-@media (max-width: 600px) {
+@media (max-width: 480px) {
   #toolbar {
     gap: 10px;
     padding: 8px 10px;
@@ -193,13 +188,17 @@
   .tool-divider {
     min-height: 40px;
   }
-  .tool,
+  .tool {
+    width: 50px !important;
+    height: 50px !important;
+    font-size: 26px;
+  }
   .tool-emoji {
-    width: 54px !important;
-    height: 54px !important;
-    font-size: 27px;
+    width: 58px !important;
+    height: 58px !important;
+    --orbit-r: 12px;
   }
   .emojiIcon {
-    font-size: 13px;
+    font-size: 15px;
   }
 }

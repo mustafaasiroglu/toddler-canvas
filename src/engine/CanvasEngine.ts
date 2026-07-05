@@ -1,5 +1,5 @@
 import { AudioEngine } from "./audio";
-import { angle, centroid, clamp, dist, type Point } from "./geometry";
+import { angle, centroid, clamp, dist, distToSegment, type Point } from "./geometry";
 
 export type Tool = "paint" | "eraser" | "emoji";
 
@@ -68,6 +68,7 @@ export class CanvasEngine {
   private prevCssW = window.innerWidth;
   private prevCssH = window.innerHeight;
   private firstTouch = false;
+  private emojiCascade = 0; // consecutive center-adds, reset by any other action
 
   private opts: CanvasEngineOptions;
   private resizeTimer: number | null = null;
@@ -154,7 +155,20 @@ export class CanvasEngine {
     this.audio.setMuted(m);
   }
 
-  addEmoji(char: string, atX = window.innerWidth / 2, atY = window.innerHeight / 2): void {
+  addEmoji(char: string, atX?: number, atY?: number): void {
+    // When dropped at the default center, nudge each consecutive add slightly
+    // right and down so they don't perfectly stack. Any other action resets it.
+    const CASCADE_STEP = 24;
+    const CASCADE_WRAP = 12;
+    let x = atX ?? window.innerWidth / 2;
+    let y = atY ?? window.innerHeight / 2;
+    if (atX === undefined && atY === undefined) {
+      const n = this.emojiCascade % CASCADE_WRAP;
+      x += n * CASCADE_STEP;
+      y += n * CASCADE_STEP;
+      this.emojiCascade++;
+    }
+
     const el = document.createElement("div");
     el.className = "emoji";
     const glyph = document.createElement("span");
@@ -165,8 +179,8 @@ export class CanvasEngine {
     const o: EmojiObj = {
       el,
       glyph,
-      x: atX,
-      y: atY,
+      x,
+      y,
       scale: 1.5,
       rot: 0,
       pointers: new Map(),
@@ -325,6 +339,7 @@ export class CanvasEngine {
   private onInputDown = (e: PointerEvent): void => {
     e.preventDefault();
     this.audio.ensure();
+    this.emojiCascade = 0; // any draw/erase resets the emoji cascade
     const p: Point = { x: e.clientX, y: e.clientY };
     if (this.activeTool === "eraser") {
       this.moveEraserCursor(p);
@@ -367,6 +382,7 @@ export class CanvasEngine {
         moved += dist(last, p);
       } else {
         this.eraseLine(last, p);
+        this.eraseEmojisAlong(last, p);
         moved += dist(last, p);
       }
       last = p;
@@ -423,6 +439,7 @@ export class CanvasEngine {
   private onEmojiDown(o: EmojiObj, e: PointerEvent): void {
     if (this.activeTool !== "emoji") return; // only movable in emoji mode
     e.preventDefault();
+    this.emojiCascade = 0; // interacting with an emoji resets the cascade
     try {
       o.el.setPointerCapture(e.pointerId);
     } catch {
@@ -477,6 +494,16 @@ export class CanvasEngine {
       const i = this.emojis.indexOf(o);
       if (i >= 0) this.emojis.splice(i, 1);
     }, 260);
+  }
+
+  /** Pop any emoji whose center the eraser passes over along segment a→b. */
+  private eraseEmojisAlong(a: Point, b: Point): void {
+    const R = ERASE / 2;
+    for (let i = this.emojis.length - 1; i >= 0; i--) {
+      const o = this.emojis[i];
+      if (o.glyph.classList.contains("bubble")) continue; // already vanishing
+      if (distToSegment({ x: o.x, y: o.y }, a, b) <= R) this.removeEmoji(o);
+    }
   }
 
   /** Topmost emoji under a point (for eraser tap-to-delete). */
