@@ -6,6 +6,7 @@ import { Toolbar } from "./components/Toolbar";
 import { Palette } from "./components/Palette";
 import { EmojiGallery } from "./components/EmojiGallery";
 import { SettingsModal } from "./components/SettingsModal";
+import { SplashScreen } from "./components/SplashScreen";
 import { ToolHint } from "./components/ToolHint";
 
 // Safari uses webkit-prefixed Fullscreen API methods.
@@ -40,6 +41,7 @@ export default function App() {
   const [fullscreen, setFullscreen] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [hintIsRainbow, setHintIsRainbow] = useState(false);
+  const [splashOpen, setSplashOpen] = useState(true);
   const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { stageRef, engineRef } = useCanvasEngine(
@@ -81,6 +83,11 @@ export default function App() {
   }, []);
 
   const resume = useCallback(() => engineRef.current?.resume(), [engineRef]);
+
+  const startFromSplash = useCallback(() => {
+    resume();
+    setSplashOpen(false);
+  }, [resume]);
 
   const triggerHint = useCallback(
     (rainbow: boolean) => {
@@ -210,6 +217,8 @@ export default function App() {
   return (
     <div id="app">
       <div className="stage" ref={stageRef} />
+
+      {splashOpen && <SplashScreen onStart={startFromSplash} />}
 
       {showHint && (
         <ToolHint
