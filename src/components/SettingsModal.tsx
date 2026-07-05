@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { Fragment, useEffect, useRef, useState, type ChangeEvent, type PointerEvent as ReactPointerEvent } from "react";
 import "./SettingsModal.css";
 
 interface SettingsModalProps {
@@ -7,6 +7,7 @@ interface SettingsModalProps {
   colors: string[];
   fullscreen: boolean;
   fullscreenSupported: boolean;
+  customStickers: string[];
   onClose: () => void;
   onToggleSound: () => void;
   onClear: () => void;
@@ -15,6 +16,8 @@ interface SettingsModalProps {
   onReorderColor: (from: number, to: number) => void;
   onEnterFullscreen: () => void;
   onExitFullscreen: () => void;
+  onAddCustomSticker: (item: string) => void;
+  onRemoveCustomSticker: (item: string) => void;
 }
 
 interface Gate {
@@ -39,12 +42,36 @@ function makeGate(): Gate {
   return { a, b, options };
 }
 
+/** Resize an image File to a square thumbnail (max `size` px on longest side) and return a PNG data URL. */
+function resizeImageFile(file: File, size: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const scale = Math.min(1, size / Math.max(img.width, img.height, 1));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL("image/png"));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Failed to load image"));
+    };
+    img.src = url;
+  });
+}
+
 export function SettingsModal({
   open,
   muted,
   colors,
   fullscreen,
   fullscreenSupported,
+  customStickers,
   onClose,
   onToggleSound,
   onClear,
@@ -53,9 +80,12 @@ export function SettingsModal({
   onReorderColor,
   onEnterFullscreen,
   onExitFullscreen,
+  onAddCustomSticker,
+  onRemoveCustomSticker,
 }: SettingsModalProps) {
   const [passed, setPassed] = useState(false);
   const [gate, setGate] = useState<Gate>(makeGate);
+  const [emojiInput, setEmojiInput] = useState("");
   const colorInputRef = useRef<HTMLInputElement | null>(null);
   const chipRefs = useRef<(HTMLDivElement | null)[]>([]);
   const centers = useRef<number[]>([]);
@@ -120,8 +150,29 @@ export function SettingsModal({
     if (open) {
       setGate(makeGate());
       setPassed(false);
+      setEmojiInput("");
     }
   }, [open]);
+
+  const handleAddEmoji = () => {
+    const text = emojiInput.trim();
+    if (!text) return;
+    onAddCustomSticker(text);
+    setEmojiInput("");
+  };
+
+  const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    for (const file of files) {
+      try {
+        const dataUrl = await resizeImageFile(file, 128);
+        onAddCustomSticker(dataUrl);
+      } catch {
+        /* skip unreadable files */
+      }
+    }
+    e.target.value = ""; // allow re-selecting the same file
+  };
 
   if (!open) return null;
 
@@ -226,6 +277,56 @@ export function SettingsModal({
                 />
               </label>
             </div>
+          </div>
+
+          <div className="srow" style={{ flexDirection: "column", alignItems: "stretch" }}>
+            <span className="lbl" style={{ marginBottom: 8 }}>
+              Custom Stickers
+            </span>
+            <div className="stickerInputRow">
+              <input
+                className="stickerEmojiInput"
+                type="text"
+                placeholder="Type an emoji 🐣"
+                value={emojiInput}
+                onChange={(e) => setEmojiInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleAddEmoji();
+                }}
+              />
+              <button className="stickerAddBtn" onClick={handleAddEmoji}>
+                Add
+              </button>
+            </div>
+            <label className="stickerUploadLabel">
+              📁 Upload Image
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                style={{ display: "none" }}
+                onChange={handleImageUpload}
+              />
+            </label>
+            {customStickers.length > 0 && (
+              <div className="stickerChips">
+                {customStickers.map((s, i) => (
+                  <div key={i} className="stickerChip">
+                    {s.startsWith("data:") ? (
+                      <img src={s} alt="sticker" className="stickerThumb" />
+                    ) : (
+                      <span className="stickerGlyph">{s}</span>
+                    )}
+                    <span
+                      className="x stickerRemove"
+                      onClick={() => onRemoveCustomSticker(s)}
+                    >
+                      ×
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="srow" style={{ justifyContent: "space-between" }}>

@@ -16,7 +16,7 @@ interface EmojiBase {
 
 interface EmojiObj {
   el: HTMLDivElement;
-  glyph: HTMLSpanElement;
+  glyph: HTMLElement;
   x: number;
   y: number;
   scale: number;
@@ -171,9 +171,19 @@ export class CanvasEngine {
 
     const el = document.createElement("div");
     el.className = "emoji";
-    const glyph = document.createElement("span");
+    let glyph: HTMLElement;
+    if (char.startsWith("data:")) {
+      const img = document.createElement("img");
+      img.src = char;
+      img.draggable = false;
+      img.style.cssText = "width:100%;height:100%;object-fit:contain;pointer-events:none;border-radius:12px;";
+      glyph = img;
+    } else {
+      const span = document.createElement("span");
+      span.textContent = char;
+      glyph = span;
+    }
     glyph.className = "glyph pop";
-    glyph.textContent = char;
     el.appendChild(glyph);
 
     const o: EmojiObj = {

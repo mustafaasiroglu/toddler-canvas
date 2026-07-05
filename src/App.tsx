@@ -42,6 +42,14 @@ export default function App() {
   const [showHint, setShowHint] = useState(false);
   const [hintIsRainbow, setHintIsRainbow] = useState(false);
   const [splashOpen, setSplashOpen] = useState(true);
+  const [customStickers, setCustomStickers] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem("tc-custom-stickers");
+      return saved ? (JSON.parse(saved) as string[]) : [];
+    } catch {
+      return [];
+    }
+  });
   const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { stageRef, engineRef } = useCanvasEngine(
@@ -182,6 +190,23 @@ export default function App() {
     });
   }, []);
 
+  // Persist custom stickers to localStorage whenever they change.
+  useEffect(() => {
+    try {
+      localStorage.setItem("tc-custom-stickers", JSON.stringify(customStickers));
+    } catch {
+      /* quota exceeded or private mode – ignore */
+    }
+  }, [customStickers]);
+
+  const addCustomSticker = useCallback((item: string) => {
+    setCustomStickers((prev) => (prev.includes(item) ? prev : [...prev, item]));
+  }, []);
+
+  const removeCustomSticker = useCallback((item: string) => {
+    setCustomStickers((prev) => prev.filter((s) => s !== item));
+  }, []);
+
   const openSettings = useCallback(() => {
     resume();
     setSettingsOpen(true);
@@ -278,7 +303,7 @@ export default function App() {
         onClearAll={clearCanvas}
       />
 
-      <EmojiGallery open={galleryOpen} onClose={() => setGalleryOpen(false)} onPick={pickEmoji} />
+      <EmojiGallery open={galleryOpen} customStickers={customStickers} onClose={() => setGalleryOpen(false)} onPick={pickEmoji} />
 
       <SettingsModal
         open={settingsOpen}
@@ -286,6 +311,7 @@ export default function App() {
         colors={colors}
         fullscreen={fullscreen}
         fullscreenSupported={fullscreenSupported}
+        customStickers={customStickers}
         onClose={() => setSettingsOpen(false)}
         onToggleSound={() => setMuted((m) => !m)}
         onClear={clearCanvas}
@@ -294,6 +320,8 @@ export default function App() {
         onReorderColor={reorderColor}
         onEnterFullscreen={enterFullscreen}
         onExitFullscreen={exitFullscreen}
+        onAddCustomSticker={addCustomSticker}
+        onRemoveCustomSticker={removeCustomSticker}
       />
     </div>
   );
