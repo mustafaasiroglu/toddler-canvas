@@ -16,6 +16,7 @@ interface ToolbarProps {
 }
 
 const HOLD_MS = 2000; // press-and-hold the eraser this long to wipe everything
+const HOLD_OVERLAY_DELAY_MS = 1000; // show hold animation only after this delay
 const RING = 2 * Math.PI * 46; // circumference of the progress ring (r = 46)
 
 export function Toolbar({
@@ -55,11 +56,21 @@ export function Toolbar({
     if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     completedRef.current = false;
     startRef.current = performance.now();
-    setHoldActive(true);
+    setHoldActive(false);
     setHoldProgress(0);
     const tick = () => {
-      const p = Math.min(1, (performance.now() - startRef.current) / HOLD_MS);
-      setHoldProgress(p);
+      const elapsed = performance.now() - startRef.current;
+      const p = Math.min(1, elapsed / HOLD_MS);
+      const shouldShowOverlay = elapsed >= HOLD_OVERLAY_DELAY_MS;
+
+      setHoldActive(shouldShowOverlay);
+      if (shouldShowOverlay) {
+        const visualDuration = Math.max(1, HOLD_MS - HOLD_OVERLAY_DELAY_MS);
+        const visualProgress = Math.min(1, (elapsed - HOLD_OVERLAY_DELAY_MS) / visualDuration);
+        setHoldProgress(visualProgress);
+      } else {
+        setHoldProgress(0);
+      }
       if (p >= 1) {
         rafRef.current = null;
         completedRef.current = true;
