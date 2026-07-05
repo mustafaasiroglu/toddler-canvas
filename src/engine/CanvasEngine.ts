@@ -35,8 +35,6 @@ export interface CanvasEngineOptions {
   onFirstInteraction?: () => void;
   /** Fired when a freehand stroke begins, e.g. to auto-hide the palette. */
   onDrawStart?: () => void;
-  /** Fired when the user taps empty space (no emoji) while in emoji mode, to switch to paint. */
-  onEmptyTap?: () => void;
 }
 
 const HALF = 48; // half of the 96px emoji box
@@ -493,31 +491,13 @@ export class CanvasEngine {
     return null;
   }
 
-  private onStageDown = (e: PointerEvent): void => {
+  private onStageDown = (_e: PointerEvent): void => {
     if (!this.firstTouch) {
       this.firstTouch = true;
       this.opts.onFirstInteraction?.();
     }
-    // In emoji mode, tapping empty space (not an emoji) switches to paint mode
-    // and starts drawing immediately.
-    if (this.activeTool === "emoji" && !this.emojiAt(e.clientX, e.clientY)) {
-      this.beginPaintFromIdle(e);
-    }
+    // In emoji mode, tapping empty space does nothing — the user must select
+    // the pen tool explicitly to switch back to drawing.
+    if (this.activeTool === "emoji") return;
   };
-
-  /** Enter paint mode and begin a stroke from the current emoji-mode pointerdown. */
-  private beginPaintFromIdle(e: PointerEvent): void {
-    this.setTool("paint"); // flips overlay pointer-events to auto synchronously
-    this.opts.onEmptyTap?.(); // keep React tool state in sync
-    const p: Point = { x: e.clientX, y: e.clientY };
-    try {
-      this.overlay.setPointerCapture(e.pointerId);
-    } catch {
-      /* ignore */
-    }
-    this.strokes.set(e.pointerId, p);
-    this.opts.onDrawStart?.();
-    this.drawDot(p);
-    this.audio.startBrush();
-  }
 }
