@@ -1,0 +1,56 @@
+@keyframes toolHintAnim {
+  0% {
+    opacity: 0;
+    transform: scale(0.6) translateY(28px);
+  }
+  22% {
+    opacity: 1;
+    transform: scale(1.1) translateY(-6px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.0) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.9) translateY(-18px);
+  }
+}
+
+.toolHint {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 200;
+}
+
+.toolHintCircle {
+  width: 130px;
+  height: 130px;
+  background: rgba(255, 255, 255, 0.88);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18), 0 0 0 3px rgba(255, 255, 255, 0.6);
+  animation: toolHintAnim 1s ease forwards;
+}
+
+.toolHintEmoji {
+  font-size: 64px;
+  line-height: 1;
+  display: block;
+}
+
+.toolHintPen {
+  width: auto;
+  height: 100px;
+  display: block;
+  transform: rotate(-30deg) translate(0, -4px);
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.15));
+}
