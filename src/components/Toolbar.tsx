@@ -231,10 +231,13 @@ export function Toolbar({
 
       <button className={"tool tool-emoji" + (tool === "emoji" ? " active" : "")} aria-label="emoji" onClick={onEmoji}>
         <div className="emojiIcon">
-          <span>😀</span>
-          <span>🌳</span>
-          <span>🚗</span>
-          <span>⭐</span>
+          {["🌳", "🚗", "⭐"].map((e, i) => (
+            <span className="orbiter" key={e} style={{ animationDelay: `${(-8 / 3) * i}s` }}>
+              <span className="face" style={{ animationDelay: `${(-8 / 3) * i}s` }}>
+                {e}
+              </span>
+            </span>
+          ))}
         </div>
       </button>
     </div>
