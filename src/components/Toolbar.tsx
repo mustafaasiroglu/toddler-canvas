@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Tool } from "../engine/CanvasEngine";
 import "./Toolbar.css";
 
@@ -32,25 +32,37 @@ export function Toolbar({
   const onPreset = painting && penColors.includes(color);
 
   const [holdProgress, setHoldProgress] = useState(0);
+  const [holdActive, setHoldActive] = useState(false);
   const rafRef = useRef<number | null>(null);
   const startRef = useRef(0);
   const completedRef = useRef(false);
 
+  useEffect(() => {
+    return () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
+
   const cancelHold = () => {
     if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     rafRef.current = null;
+    setHoldActive(false);
     setHoldProgress(0);
   };
 
   const startHold = () => {
+    if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     completedRef.current = false;
     startRef.current = performance.now();
+    setHoldActive(true);
+    setHoldProgress(0);
     const tick = () => {
       const p = Math.min(1, (performance.now() - startRef.current) / HOLD_MS);
       setHoldProgress(p);
       if (p >= 1) {
         rafRef.current = null;
         completedRef.current = true;
+        setHoldActive(false);
         setHoldProgress(0);
         onClearAll();
         return;
@@ -71,6 +83,26 @@ export function Toolbar({
 
   return (
     <div id="toolbar" className={tool === "paint" || tool === "eraser" ? "hasactive" : undefined}>
+      {holdActive && (
+        <div className="holdOverlay" aria-hidden="true">
+          <div className="holdOverlayCircle">
+            <span className="holdOverlayEmoji">🧽</span>
+            <svg className="holdRing" viewBox="0 0 100 100">
+              <circle className="holdRingTrack" cx="50" cy="50" r="46" />
+              <circle
+                className="holdRingFill"
+                cx="50"
+                cy="50"
+                r="46"
+                style={{
+                  strokeDasharray: RING,
+                  strokeDashoffset: RING * (1 - holdProgress),
+                }}
+              />
+            </svg>
+          </div>
+        </div>
+      )}
       <div className="tool-section">
         {penColors.map((hex) => (
           <button
@@ -175,21 +207,6 @@ export function Toolbar({
           onContextMenu={(e) => e.preventDefault()}
         >
           🧽
-          {holdProgress > 0 && (
-            <svg className="holdRing" viewBox="0 0 100 100" aria-hidden="true">
-              <circle className="holdRingTrack" cx="50" cy="50" r="46" />
-              <circle
-                className="holdRingFill"
-                cx="50"
-                cy="50"
-                r="46"
-                style={{
-                  strokeDasharray: RING,
-                  strokeDashoffset: RING * (1 - holdProgress),
-                }}
-              />
-            </svg>
-          )}
         </button>
       </div>
 
