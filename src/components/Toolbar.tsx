@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { Tool } from "../engine/CanvasEngine";
 import "./Toolbar.css";
 
@@ -81,28 +82,33 @@ export function Toolbar({
     onEraser();
   };
 
+  const holdOverlay =
+    holdActive &&
+    createPortal(
+      <div className="holdOverlay" aria-hidden="true">
+        <div className="holdOverlayCircle">
+          <span className="holdOverlayEmoji">🧽</span>
+          <svg className="holdRing" viewBox="0 0 100 100">
+            <circle className="holdRingTrack" cx="50" cy="50" r="46" />
+            <circle
+              className="holdRingFill"
+              cx="50"
+              cy="50"
+              r="46"
+              style={{
+                strokeDasharray: RING,
+                strokeDashoffset: RING * (1 - holdProgress),
+              }}
+            />
+          </svg>
+        </div>
+      </div>,
+      document.body,
+    );
+
   return (
     <div id="toolbar" className={tool === "paint" || tool === "eraser" ? "hasactive" : undefined}>
-      {holdActive && (
-        <div className="holdOverlay" aria-hidden="true">
-          <div className="holdOverlayCircle">
-            <span className="holdOverlayEmoji">🧽</span>
-            <svg className="holdRing" viewBox="0 0 100 100">
-              <circle className="holdRingTrack" cx="50" cy="50" r="46" />
-              <circle
-                className="holdRingFill"
-                cx="50"
-                cy="50"
-                r="46"
-                style={{
-                  strokeDasharray: RING,
-                  strokeDashoffset: RING * (1 - holdProgress),
-                }}
-              />
-            </svg>
-          </div>
-        </div>
-      )}
+      {holdOverlay}
       <div className="tool-section">
         {penColors.map((hex) => (
           <button
