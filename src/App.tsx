@@ -25,8 +25,8 @@ const fullscreenSupported = (() => {
 })();
 
 // Duration the tool hint animation plays before being unmounted (in ms).
-// The CSS animation itself is 1 s; this adds a small buffer.
-const HINT_DISPLAY_DURATION_MS = 1100;
+// The CSS animation itself is 0.5 s; this adds a small buffer.
+const HINT_DISPLAY_DURATION_MS = 600;
 
 export default function App() {
   const [tool, setTool] = useState<Tool>("paint");

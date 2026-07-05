@@ -38,7 +38,7 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18), 0 0 0 3px rgba(255, 255, 255, 0.6);
-  animation: toolHintAnim 1s ease forwards;
+  animation: toolHintAnim 0.5s ease forwards;
 }
 
 .toolHintEmoji {
