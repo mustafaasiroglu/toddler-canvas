@@ -2,7 +2,7 @@
   position: fixed;
   inset: 0;
   z-index: 300;
-  background: rgba(40, 25, 12, 0.4);
+  background: rgba(255, 255, 255, 0.15);
   -webkit-backdrop-filter: blur(3px);
   backdrop-filter: blur(3px);
   display: none;
@@ -20,7 +20,9 @@
   height: min(92vh, 860px);
   height: min(92dvh, 860px);
   max-height: 100%;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.72);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
   border-radius: 28px;
   box-shadow: 0 18px 50px rgba(40, 25, 12, 0.4);
   display: flex;
@@ -49,8 +51,8 @@
   align-items: center;
   gap: 6px;
   padding: 12px 8px 12px;
-  background: #f6f6f6;
-  border-right: 1.5px solid #e8e8e8;
+  background: rgba(255, 255, 255, 0.4);
+  border-right: 1.5px solid rgba(255, 255, 255, 0.5);
   overflow-y: auto;
   scrollbar-width: none;
 }
