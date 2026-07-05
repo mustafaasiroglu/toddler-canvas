@@ -8,17 +8,21 @@ interface EmojiGalleryProps {
   onPick: (char: string) => void;
 }
 
+// Persisted across open/close cycles (survives component unmount).
+let _savedCat = 0;
+let _savedScrollTop = 0;
+
 export function EmojiGallery({ open, onClose, onPick }: EmojiGalleryProps) {
-  const [activeCat, setActiveCat] = useState(0);
+  const [activeCat, setActiveCat] = useState(_savedCat);
   const scrollRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<(HTMLElement | null)[]>([]);
   const clickScroll = useRef(false); // ignore scroll events triggered by a tab tap
 
-  // Reset to the top whenever the gallery is (re)opened.
+  // Restore last position and category whenever the gallery is (re)opened.
   useEffect(() => {
     if (open) {
-      setActiveCat(0);
-      scrollRef.current?.scrollTo({ top: 0 });
+      setActiveCat(_savedCat);
+      scrollRef.current?.scrollTo({ top: _savedScrollTop });
     }
   }, [open]);
 
@@ -27,16 +31,19 @@ export function EmojiGallery({ open, onClose, onPick }: EmojiGalleryProps) {
     if (clickScroll.current) return;
     const cont = scrollRef.current;
     if (!cont) return;
+    _savedScrollTop = cont.scrollTop; // persist for next open
     const top = cont.scrollTop + 60; // a little below the very top edge
     let idx = 0;
     for (let i = 0; i < sectionRefs.current.length; i++) {
       const sec = sectionRefs.current[i];
       if (sec && sec.offsetTop <= top) idx = i;
     }
+    _savedCat = idx;
     setActiveCat(idx);
   }, []);
 
   const goToCat = useCallback((idx: number) => {
+    _savedCat = idx;
     setActiveCat(idx);
     const sec = sectionRefs.current[idx];
     const cont = scrollRef.current;
@@ -46,6 +53,7 @@ export function EmojiGallery({ open, onClose, onPick }: EmojiGalleryProps) {
     cont.scrollTo({ top: sec.offsetTop, behavior: "smooth" });
     window.setTimeout(() => {
       clickScroll.current = false;
+      if (scrollRef.current) _savedScrollTop = scrollRef.current.scrollTop;
     }, 500);
   }, []);
 

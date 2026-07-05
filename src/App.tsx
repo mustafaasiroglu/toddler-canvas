@@ -37,7 +37,6 @@ export default function App() {
   const { stageRef, engineRef } = useCanvasEngine(
     undefined,
     () => setPaletteOpen(false), // drawing on the canvas auto-hides the palette
-    () => setTool("paint"), // tapping empty space while in emoji mode jumps to paint mode
   );
 
   // Keep the imperative engine in sync with declarative React state.

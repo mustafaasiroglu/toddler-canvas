@@ -8,7 +8,6 @@ import { CanvasEngine } from "../engine/CanvasEngine";
 export function useCanvasEngine(
   onFirstInteraction?: () => void,
   onDrawStart?: () => void,
-  onEmptyTap?: () => void,
 ) {
   const stageRef = useRef<HTMLDivElement | null>(null);
   const engineRef = useRef<CanvasEngine | null>(null);
@@ -16,15 +15,12 @@ export function useCanvasEngine(
   cbRef.current = onFirstInteraction;
   const drawRef = useRef(onDrawStart);
   drawRef.current = onDrawStart;
-  const emptyRef = useRef(onEmptyTap);
-  emptyRef.current = onEmptyTap;
 
   useEffect(() => {
     if (!stageRef.current) return;
     const engine = new CanvasEngine(stageRef.current, {
       onFirstInteraction: () => cbRef.current?.(),
       onDrawStart: () => drawRef.current?.(),
-      onEmptyTap: () => emptyRef.current?.(),
     });
     engineRef.current = engine;
     return () => {
