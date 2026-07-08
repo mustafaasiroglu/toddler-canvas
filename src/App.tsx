@@ -211,6 +211,15 @@ export default function App() {
     engineRef.current?.audio.blip(400, 0.12, 0.08, "sine");
   }, [engineRef]);
 
+  const exportImage = useCallback(() => {
+    const dataUrl = engineRef.current?.exportImage();
+    if (!dataUrl) return;
+    const a = document.createElement("a");
+    a.href = dataUrl;
+    a.download = "toddler-canvas.png";
+    a.click();
+  }, [engineRef]);
+
   const penColors = colors.slice(0, 3); // first three show directly on screen
   const paletteColors = colors.slice(3); // the rest live inside the palette
 
@@ -289,6 +298,7 @@ export default function App() {
         onClose={() => setSettingsOpen(false)}
         onToggleSound={() => setMuted((m) => !m)}
         onClear={clearCanvas}
+        onExportImage={exportImage}
         onAddColor={addColor}
         onRemoveColor={removeColor}
         onReorderColor={reorderColor}

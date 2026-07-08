@@ -10,6 +10,7 @@ interface SettingsModalProps {
   onClose: () => void;
   onToggleSound: () => void;
   onClear: () => void;
+  onExportImage: () => void;
   onAddColor: (hex: string) => void;
   onRemoveColor: (hex: string) => void;
   onReorderColor: (from: number, to: number) => void;
@@ -48,6 +49,7 @@ export function SettingsModal({
   onClose,
   onToggleSound,
   onClear,
+  onExportImage,
   onAddColor,
   onRemoveColor,
   onReorderColor,
@@ -237,6 +239,15 @@ export function SettingsModal({
               }}
             >
               Clear Canvas
+            </button>
+            <button
+              className="btnBig btnSecondary"
+              onClick={() => {
+                onExportImage();
+                onClose();
+              }}
+            >
+              Export as Image
             </button>
             <button className="btnBig btnPrimary" onClick={onClose}>
               Done
