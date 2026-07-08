@@ -99,6 +99,10 @@
   background: #ffe1dc;
   color: #c0392b;
 }
+.btnSecondary {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
 .btnPrimary {
   background: #4aa3ff;
   color: #fff;

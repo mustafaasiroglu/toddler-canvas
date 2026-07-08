@@ -207,6 +207,43 @@ export class CanvasEngine {
     this.currentSeg = null;
   }
 
+  /** Composite all drawing segments and visible emojis into a single PNG data URL. */
+  exportImage(): string {
+    const w = Math.round(window.innerWidth * this.dpr);
+    const h = Math.round(window.innerHeight * this.dpr);
+    const tmp = document.createElement("canvas");
+    tmp.width = w;
+    tmp.height = h;
+    const ctx = tmp.getContext("2d")!;
+
+    // White background
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, w, h);
+
+    // Composite all drawing segments and emoji layers in DOM order (add order = z order).
+    // Walk the layer's children to preserve correct stacking.
+    for (const child of Array.from(this.layer.children)) {
+      if (child instanceof HTMLCanvasElement) {
+        ctx.drawImage(child, 0, 0);
+      } else if (child instanceof HTMLElement && child.classList.contains("emoji")) {
+        // Find the matching EmojiObj by comparing element reference.
+        const obj = this.emojis.find((o) => o.el === child);
+        if (!obj || obj.glyph.classList.contains("bubble")) continue;
+        const char = obj.glyph.textContent ?? "";
+        ctx.save();
+        ctx.translate(obj.x * this.dpr, obj.y * this.dpr);
+        ctx.rotate(obj.rot);
+        ctx.font = `${74 * obj.scale * this.dpr}px sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(char, 0, 0);
+        ctx.restore();
+      }
+    }
+
+    return tmp.toDataURL("image/png");
+  }
+
   destroy(): void {
     window.removeEventListener("resize", this.onResize);
     window.removeEventListener("orientationchange", this.onOrientation);
