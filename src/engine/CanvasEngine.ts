@@ -214,7 +214,8 @@ export class CanvasEngine {
     const tmp = document.createElement("canvas");
     tmp.width = w;
     tmp.height = h;
-    const ctx = tmp.getContext("2d")!;
+    const ctx = tmp.getContext("2d");
+    if (!ctx) return "";
 
     // White background
     ctx.fillStyle = "#ffffff";
@@ -228,6 +229,7 @@ export class CanvasEngine {
       } else if (child instanceof HTMLElement && child.classList.contains("emoji")) {
         // Find the matching EmojiObj by comparing element reference.
         const obj = this.emojis.find((o) => o.el === child);
+        // Skip emojis that are mid-disappear animation ("bubble" class).
         if (!obj || obj.glyph.classList.contains("bubble")) continue;
         const char = obj.glyph.textContent ?? "";
         ctx.save();
