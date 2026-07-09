@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CATEGORIES } from "../data/emojis";
 import "./EmojiGallery.css";
 
 interface EmojiGalleryProps {
   open: boolean;
+  customStickers: string[];
   onClose: () => void;
   onPick: (char: string) => void;
 }
@@ -12,11 +13,16 @@ interface EmojiGalleryProps {
 let _savedCat = 0;
 let _savedScrollTop = 0;
 
-export function EmojiGallery({ open, onClose, onPick }: EmojiGalleryProps) {
+export function EmojiGallery({ open, customStickers, onClose, onPick }: EmojiGalleryProps) {
   const [activeCat, setActiveCat] = useState(_savedCat);
   const scrollRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<(HTMLElement | null)[]>([]);
   const clickScroll = useRef(false); // ignore scroll events triggered by a tab tap
+
+  const allCategories = useMemo(() => {
+    if (!customStickers.length) return CATEGORIES;
+    return [{ icon: "📌", items: customStickers }, ...CATEGORIES];
+  }, [customStickers]);
 
   // Restore last position and category whenever the gallery is (re)opened.
   useEffect(() => {
@@ -69,7 +75,7 @@ export function EmojiGallery({ open, onClose, onPick }: EmojiGalleryProps) {
             ✕
           </button>
           <div id="tabs">
-            {CATEGORIES.map((cat, idx) => (
+            {allCategories.map((cat, idx) => (
               <button
                 key={cat.icon}
                 className={"tab" + (idx === activeCat ? " sel" : "")}
@@ -83,7 +89,7 @@ export function EmojiGallery({ open, onClose, onPick }: EmojiGalleryProps) {
 
         {/* Right: scrollable emoji grid */}
         <div id="grid" ref={scrollRef} onScroll={handleScroll}>
-          {CATEGORIES.map((cat, idx) => (
+          {allCategories.map((cat, idx) => (
             <section
               key={cat.icon}
               className="cat-section"
@@ -93,8 +99,16 @@ export function EmojiGallery({ open, onClose, onPick }: EmojiGalleryProps) {
             >
               <div className="cat-cells">
                 {cat.items.map((ch, i) => (
-                  <button key={ch + i} className="cell" onClick={() => onPick(ch)}>
-                    {ch}
+                  <button
+                    key={ch.startsWith("data:") ? `${ch.slice(0, 30)}-${ch.length}` : ch + i}
+                    className="cell"
+                    onClick={() => onPick(ch)}
+                  >
+                    {ch.startsWith("data:") ? (
+                      <img src={ch} alt="sticker" className="cell-img" />
+                    ) : (
+                      ch
+                    )}
                   </button>
                 ))}
               </div>
