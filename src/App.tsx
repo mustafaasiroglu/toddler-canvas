@@ -236,9 +236,26 @@ export default function App() {
     engineRef.current?.audio.blip(400, 0.12, 0.08, "sine");
   }, [engineRef]);
 
-  const exportImage = useCallback(() => {
+  const exportImage = useCallback(async () => {
     const dataUrl = engineRef.current?.exportImage();
     if (!dataUrl) return;
+
+    // Web Share API: preferred on mobile (iOS Safari ignores anchor downloads).
+    if (typeof navigator.share === "function") {
+      try {
+        const res = await fetch(dataUrl);
+        const blob = await res.blob();
+        const file = new File([blob], "toddler-canvas.png", { type: "image/png" });
+        if (navigator.canShare?.({ files: [file] })) {
+          await navigator.share({ files: [file], title: "Toddler Canvas" });
+          return;
+        }
+      } catch {
+        // share cancelled or failed — fall through to anchor download
+      }
+    }
+
+    // Fallback: anchor-click download (desktop browsers).
     const a = document.createElement("a");
     a.href = dataUrl;
     a.download = "toddler-canvas.png";
