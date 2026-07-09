@@ -240,12 +240,14 @@ export default function App() {
     const dataUrl = engineRef.current?.exportImage();
     if (!dataUrl) return;
 
+    const filename = "toddler-canvas.png";
+
     // Web Share API: preferred on mobile (iOS Safari ignores anchor downloads).
     if (typeof navigator.share === "function") {
       try {
         const res = await fetch(dataUrl);
         const blob = await res.blob();
-        const file = new File([blob], "toddler-canvas.png", { type: "image/png" });
+        const file = new File([blob], filename, { type: "image/png" });
         if (navigator.canShare?.({ files: [file] })) {
           await navigator.share({ files: [file], title: "Toddler Canvas" });
           return;
@@ -258,7 +260,7 @@ export default function App() {
     // Fallback: anchor-click download (desktop browsers).
     const a = document.createElement("a");
     a.href = dataUrl;
-    a.download = "toddler-canvas.png";
+    a.download = filename;
     a.click();
   }, [engineRef]);
 
