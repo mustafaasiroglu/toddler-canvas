@@ -91,38 +91,40 @@ export function SettingsModal({
 }: SettingsModalProps) {
   const [passed, setPassed] = useState(false);
   const [gate, setGate] = useState<Gate>(makeGate);
+  const [palettePopupOpen, setPalettePopupOpen] = useState(false);
+  const [stickerPopupOpen, setStickerPopupOpen] = useState(false);
+  const [stickerMode, setStickerMode] = useState<"emoji" | "image" | null>(null);
   const [emojiInput, setEmojiInput] = useState("");
   const colorInputRef = useRef<HTMLInputElement | null>(null);
+  const emojiInputRef = useRef<HTMLInputElement | null>(null);
   const chipRefs = useRef<(HTMLDivElement | null)[]>([]);
   const centers = useRef<number[]>([]);
-  const startX = useRef(0);
+  const startY = useRef(0);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [overIdx, setOverIdx] = useState<number | null>(null);
-  const [dragDX, setDragDX] = useState(0);
+  const [dragDY, setDragDY] = useState(0);
 
   const startDrag = (e: ReactPointerEvent, i: number) => {
-    if ((e.target as HTMLElement).classList.contains("x")) return; // let the remove tap work
+    if ((e.target as HTMLElement).classList.contains("x")) return;
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    // Snapshot the slot centers so neighbours can slide while the layout stays put.
     centers.current = chipRefs.current.map((el) => {
       if (!el) return 0;
       const r = el.getBoundingClientRect();
-      return r.left + r.width / 2;
+      return r.top + r.height / 2;
     });
-    startX.current = e.clientX;
+    startY.current = e.clientY;
     setDragIdx(i);
     setOverIdx(i);
-    setDragDX(0);
+    setDragDY(0);
   };
 
   const moveDrag = (e: ReactPointerEvent) => {
     if (dragIdx === null) return;
-    setDragDX(e.clientX - startX.current);
-    // Insertion index = how many non-dragged chips sit left of the pointer.
+    setDragDY(e.clientY - startY.current);
     let t = 0;
     for (let k = 0; k < centers.current.length; k++) {
       if (k === dragIdx) continue;
-      if (centers.current[k] < e.clientX) t++;
+      if (centers.current[k] < e.clientY) t++;
     }
     setOverIdx(t);
   };
@@ -133,22 +135,21 @@ export function SettingsModal({
     }
     setDragIdx(null);
     setOverIdx(null);
-    setDragDX(0);
+    setDragDY(0);
   };
 
-  // While dragging, shift the neighbours into the gap the dragged chip leaves.
   const chipTransform = (i: number): string | undefined => {
-    if (i === dragIdx) return `translateX(${dragDX}px)`;
+    if (i === dragIdx) return `translateY(${dragDY}px)`;
     if (dragIdx === null || overIdx === null) return undefined;
     const from = dragIdx;
     const to = overIdx;
     if (from < to && i > from && i <= to) {
-      return `translateX(${centers.current[i - 1] - centers.current[i]}px)`;
+      return `translateY(${centers.current[i - 1] - centers.current[i]}px)`;
     }
     if (from > to && i >= to && i < from) {
-      return `translateX(${centers.current[i + 1] - centers.current[i]}px)`;
+      return `translateY(${centers.current[i + 1] - centers.current[i]}px)`;
     }
-    return "translateX(0px)";
+    return "translateY(0px)";
   };
 
   // Fresh gate every time the popup opens; hide the panel again on close.
@@ -157,14 +158,35 @@ export function SettingsModal({
       setGate(makeGate());
       setPassed(false);
       setEmojiInput("");
+      setPalettePopupOpen(false);
+      setStickerPopupOpen(false);
+      setStickerMode(null);
     }
   }, [open]);
 
-  const handleAddEmoji = () => {
-    const text = emojiInput.trim();
-    if (!text) return;
-    onAddCustomSticker(text);
-    setEmojiInput("");
+  // Auto-focus emoji input when emoji mode is selected
+  useEffect(() => {
+    if (stickerMode === "emoji" && emojiInputRef.current) {
+      emojiInputRef.current.focus();
+    }
+  }, [stickerMode]);
+
+  const handleEmojiInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setEmojiInput(val);
+    // Auto-submit and close when a single character (emoji) is entered
+    const trimmed = val.trim();
+    if (trimmed.length > 0) {
+      // Use Array.from to handle multi-byte emoji as single character
+      const chars = Array.from(trimmed);
+      if (chars.length >= 1) {
+        onAddCustomSticker(chars[0]);
+        setEmojiInput("");
+        setStickerMode(null);
+        // Blur the input to dismiss the keyboard on mobile
+        emojiInputRef.current?.blur();
+      }
+    }
   };
 
   const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -177,7 +199,8 @@ export function SettingsModal({
         console.warn("Custom sticker: could not process image file", err);
       }
     }
-    e.target.value = ""; // allow re-selecting the same file
+    e.target.value = "";
+    setStickerMode(null);
   };
 
   if (!open) return null;
@@ -239,103 +262,51 @@ export function SettingsModal({
             </button>
           </div>
 
-          <div className="srow" style={{ flexDirection: "column", alignItems: "stretch" }}>
-            <span className="lbl" style={{ marginBottom: 8 }}>
-              Palette colors
-            </span>
-            <div id="palEditor">
-              {colors.map((hex, i) => (
-                <Fragment key={hex}>
-                  {i === 3 ? <span className="palPipe" aria-hidden /> : null}
-                  <div
-                    ref={(el) => {
-                      chipRefs.current[i] = el;
-                    }}
-                    className={"palChip" + (dragIdx === i ? " dragging" : "")}
-                    style={{
-                      background: hex,
-                      transform: chipTransform(i),
-                    }}
-                    onPointerDown={(e) => startDrag(e, i)}
-                    onPointerMove={moveDrag}
-                    onPointerUp={endDrag}
-                    onPointerCancel={endDrag}
-                  >
-                    <span
-                      className="x"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (colors.length > 1) onRemoveColor(hex);
-                      }}
-                    >
-                      ×
-                    </span>
-                  </div>
-                </Fragment>
+          {/* Palette colors – preview + edit icon */}
+          <div className="srow">
+            <span className="lbl">Palette Colors</span>
+            <div className="palPreviewRow">
+              {colors.slice(0, 8).map((hex) => (
+                <span key={hex} className="palPreviewDot" style={{ background: hex }} />
               ))}
-              <label className="palAdd">
-                +
-                <input
-                  ref={colorInputRef}
-                  type="color"
-                  defaultValue="#ff88cc"
-                  onChange={(e) => onAddColor(e.target.value.toLowerCase())}
-                />
-              </label>
+              {colors.length > 8 && <span className="palPreviewMore">+{colors.length - 8}</span>}
+              <button
+                className="palEditBtn"
+                aria-label="Edit palette"
+                onClick={() => setPalettePopupOpen(true)}
+              >
+                ✏️
+              </button>
             </div>
           </div>
 
-          <div className="srow" style={{ flexDirection: "column", alignItems: "stretch" }}>
-            <span className="lbl" style={{ marginBottom: 8 }}>
-              Custom Stickers
-            </span>
-            <div className="stickerInputRow">
-              <input
-                className="stickerEmojiInput"
-                type="text"
-                placeholder="Type an emoji 🐣"
-                value={emojiInput}
-                onChange={(e) => setEmojiInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleAddEmoji();
-                }}
-              />
-              <button className="stickerAddBtn" onClick={handleAddEmoji}>
-                Add
+          {/* Custom Stickers – preview + add button */}
+          <div className="srow">
+            <span className="lbl">Custom Stickers</span>
+            <div className="stickerPreviewRow">
+              {customStickers.slice(0, 5).map((s) => (
+                <span
+                  key={s.startsWith("data:") ? `${s.slice(0, 30)}-${s.length}` : s}
+                  className="stickerPreviewItem"
+                >
+                  {s.startsWith("data:") ? (
+                    <img src={s} alt="sticker" className="stickerPreviewThumb" />
+                  ) : (
+                    <span className="stickerPreviewGlyph">{s}</span>
+                  )}
+                </span>
+              ))}
+              {customStickers.length > 5 && (
+                <span className="stickerPreviewMore">+{customStickers.length - 5}</span>
+              )}
+              <button
+                className="stickerAddBtnSmall"
+                aria-label="Add sticker"
+                onClick={() => setStickerPopupOpen(true)}
+              >
+                +
               </button>
             </div>
-            <label className="stickerUploadLabel">
-              📁 Upload Image
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                style={{ display: "none" }}
-                onChange={handleImageUpload}
-              />
-            </label>
-            {customStickers.length > 0 && (
-              <div className="stickerChips">
-                {customStickers.map((s) => (
-                  <div
-                    key={s.startsWith("data:") ? `${s.slice(0, 30)}-${s.length}` : s}
-                    className="stickerChip"
-                  >
-                    {s.startsWith("data:") ? (
-                      <img src={s} alt="sticker" className="stickerThumb" />
-                    ) : (
-                      <span className="stickerGlyph">{s}</span>
-                    )}
-                    <span
-                      className="x stickerRemove"
-                      onClick={() => onRemoveCustomSticker(s)}
-                    >
-                      ×
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
 
           <div className="srow" style={{ justifyContent: "space-between" }}>
@@ -360,6 +331,176 @@ export function SettingsModal({
             <button className="btnBig btnPrimary" onClick={onClose}>
               Done
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Palette editor popup */}
+      {palettePopupOpen && (
+        <div
+          className="subPopupOverlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setPalettePopupOpen(false);
+          }}
+        >
+          <div className="subPopup">
+            <div className="subPopupHeader">
+              <h3>Edit Palette</h3>
+              <button className="subPopupClose" onClick={() => setPalettePopupOpen(false)}>
+                ✕
+              </button>
+            </div>
+            <div className="palListVertical">
+              {colors.map((hex, i) => (
+                <Fragment key={hex}>
+                  <div
+                    ref={(el) => {
+                      chipRefs.current[i] = el;
+                    }}
+                    className={"palListItem" + (dragIdx === i ? " dragging" : "")}
+                    style={{ transform: chipTransform(i) }}
+                    onPointerDown={(e) => startDrag(e, i)}
+                    onPointerMove={moveDrag}
+                    onPointerUp={endDrag}
+                    onPointerCancel={endDrag}
+                  >
+                    <span className="palListGrip">☰</span>
+                    <span className="palListSwatch" style={{ background: hex }} />
+                    <span className="palListHex">{hex}</span>
+                    {colors.length > 1 && (
+                      <span
+                        className="palListRemove"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onRemoveColor(hex);
+                        }}
+                      >
+                        ×
+                      </span>
+                    )}
+                  </div>
+                </Fragment>
+              ))}
+            </div>
+            <label className="palAddRow">
+              <span className="palAddLabel">+ Add color</span>
+              <input
+                ref={colorInputRef}
+                type="color"
+                defaultValue="#ff88cc"
+                onChange={(e) => onAddColor(e.target.value.toLowerCase())}
+              />
+            </label>
+          </div>
+        </div>
+      )}
+
+      {/* Sticker add popup */}
+      {stickerPopupOpen && (
+        <div
+          className="subPopupOverlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setStickerPopupOpen(false);
+              setStickerMode(null);
+            }
+          }}
+        >
+          <div className="subPopup">
+            <div className="subPopupHeader">
+              <h3>Custom Stickers</h3>
+              <button
+                className="subPopupClose"
+                onClick={() => {
+                  setStickerPopupOpen(false);
+                  setStickerMode(null);
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Existing stickers list */}
+            {customStickers.length > 0 && (
+              <div className="stickerListVertical">
+                {customStickers.map((s) => (
+                  <div
+                    key={s.startsWith("data:") ? `${s.slice(0, 30)}-${s.length}` : s}
+                    className="stickerListItem"
+                  >
+                    {s.startsWith("data:") ? (
+                      <img src={s} alt="sticker" className="stickerListThumb" />
+                    ) : (
+                      <span className="stickerListGlyph">{s}</span>
+                    )}
+                    <span
+                      className="stickerListRemove"
+                      onClick={() => onRemoveCustomSticker(s)}
+                    >
+                      ×
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Add mode selection */}
+            {stickerMode === null && (
+              <div className="stickerModeButtons">
+                <button className="stickerModeBtn" onClick={() => setStickerMode("emoji")}>
+                  😀 Add Emoji
+                </button>
+                <button className="stickerModeBtn" onClick={() => setStickerMode("image")}>
+                  🖼️ Upload Image
+                </button>
+              </div>
+            )}
+
+            {/* Emoji input */}
+            {stickerMode === "emoji" && (
+              <div className="stickerEmojiSection">
+                <input
+                  ref={emojiInputRef}
+                  className="stickerEmojiInputNew"
+                  type="text"
+                  placeholder="Type an emoji 🐣"
+                  value={emojiInput}
+                  onChange={handleEmojiInputChange}
+                  autoFocus
+                />
+                <button
+                  className="stickerModeCancelBtn"
+                  onClick={() => {
+                    setStickerMode(null);
+                    setEmojiInput("");
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+
+            {/* Image upload */}
+            {stickerMode === "image" && (
+              <div className="stickerImageSection">
+                <label className="stickerUploadLabel">
+                  📁 Choose Image
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    style={{ display: "none" }}
+                    onChange={handleImageUpload}
+                  />
+                </label>
+                <button
+                  className="stickerModeCancelBtn"
+                  onClick={() => setStickerMode(null)}
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
