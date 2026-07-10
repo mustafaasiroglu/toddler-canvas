@@ -179,7 +179,7 @@ export function SettingsModal({
     if (trimmed.length > 0) {
       // Use Array.from to handle multi-byte emoji as single character
       const chars = Array.from(trimmed);
-      if (chars.length >= 1) {
+      if (chars.length > 0) {
         onAddCustomSticker(chars[0]);
         setEmojiInput("");
         setStickerMode(null);
@@ -264,7 +264,7 @@ export function SettingsModal({
 
           {/* Palette colors – preview + edit icon */}
           <div className="srow">
-            <span className="lbl">Palette Colors</span>
+            <span className="lbl">Palette colors</span>
             <div className="palPreviewRow">
               {colors.slice(0, 8).map((hex) => (
                 <span key={hex} className="palPreviewDot" style={{ background: hex }} />
@@ -466,7 +466,6 @@ export function SettingsModal({
                   placeholder="Type an emoji 🐣"
                   value={emojiInput}
                   onChange={handleEmojiInputChange}
-                  autoFocus
                 />
                 <button
                   className="stickerModeCancelBtn"
