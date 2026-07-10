@@ -138,133 +138,314 @@
   left: 33px;
 }
 
-/* Palette editor */
-#palEditor {
+/* Palette preview row in settings */
+.palPreviewRow {
   display: flex;
-  flex-wrap: nowrap;
-  gap: 10px;
-  margin-top: 6px;
-  padding: 10px 2px 4px;
-  overflow-x: scroll;
   align-items: center;
-  touch-action: pan-x;
-  /* Always show the horizontal scrollbar so drag-to-reorder and
-     scroll gestures don't get confused with each other. */
-  scrollbar-width: thin;
-  scrollbar-color: rgba(90, 70, 50, 0.55) rgba(90, 70, 50, 0.14);
+  gap: 6px;
 }
-#palEditor::-webkit-scrollbar {
-  height: 10px;
-  -webkit-appearance: none;
-}
-#palEditor::-webkit-scrollbar-track {
-  background: rgba(90, 70, 50, 0.14);
-  border-radius: 6px;
-}
-#palEditor::-webkit-scrollbar-thumb {
-  background: rgba(90, 70, 50, 0.55);
-  border-radius: 6px;
-}
-.palPipe {
-  flex: 0 0 auto;
-  width: 3px;
-  align-self: stretch;
-  min-height: 40px;
-  background: rgba(90, 70, 50, 0.28);
-  border-radius: 3px;
-  margin: 0 2px;
-}
-.palChip {
-  position: relative;
-  width: 44px;
-  height: 44px;
+.palPreviewDot {
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  border: 3px solid #fff;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18);
-  cursor: grab;
-  flex: 0 0 auto;
-  touch-action: none;
-  transition: transform 0.16s ease;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
 }
-.palChip.dragging {
-  cursor: grabbing;
-  z-index: 5;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
-  transition: none;
+.palPreviewMore {
+  font-size: 13px;
+  color: #8a6f59;
+  font-weight: 600;
 }
-.palChip .x {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: #c0392b;
-  color: #fff;
-  font-size: 14px;
-  line-height: 22px;
-  text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
-}
-.palAdd {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 3px dashed #b79b82;
-  background: #fff;
-  font-size: 26px;
-  line-height: 1;
-  color: #b79b82;
+.palEditBtn {
+  border: none;
+  background: none;
+  font-size: 20px;
   cursor: pointer;
-  flex: 0 0 auto;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: background 0.14s ease;
+}
+.palEditBtn:active {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* Sub-popup overlay (for palette editor and sticker editor) */
+.subPopupOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 500;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
+  background: rgba(40, 26, 14, 0.5);
+  backdrop-filter: blur(2px);
+  padding: 16px;
+  animation: fade 0.14s ease both;
 }
-.palAdd input {
+.subPopup {
+  width: 100%;
+  max-width: 380px;
+  max-height: 80vh;
+  overflow-y: auto;
+  background: #fffaf3;
+  border-radius: 22px;
+  box-shadow: 0 14px 40px rgba(40, 26, 14, 0.4);
+  padding: 18px 16px;
+}
+.subPopupHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.subPopupHeader h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #5a3d28;
+}
+.subPopupClose {
+  border: none;
+  background: none;
+  font-size: 22px;
+  color: #8a6f59;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  line-height: 1;
+}
+.subPopupClose:active {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* Palette vertical list in popup */
+.palListVertical {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.palListItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid rgba(140, 111, 89, 0.15);
+  touch-action: none;
+  cursor: grab;
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+}
+.palListItem.dragging {
+  cursor: grabbing;
+  z-index: 5;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  transition: none;
+}
+.palListGrip {
+  font-size: 16px;
+  color: #b79b82;
+  cursor: grab;
+}
+.palListSwatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+}
+.palListHex {
+  flex: 1;
+  font-size: 14px;
+  color: #5a3d28;
+  font-family: monospace;
+}
+.palListRemove {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #ffe1dc;
+  color: #c0392b;
+  font-size: 16px;
+  line-height: 26px;
+  text-align: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.1s ease;
+}
+.palListRemove:active {
+  transform: scale(0.9);
+}
+.palAddRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 2px dashed rgba(140, 111, 89, 0.3);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.14s ease;
+}
+.palAddRow:active {
+  background: rgba(74, 163, 255, 0.06);
+}
+.palAddLabel {
+  font-size: 15px;
+  font-weight: 600;
+  color: #8a6f59;
+}
+.palAddRow input {
   display: none;
 }
 
-/* Custom Stickers section */
-.stickerInputRow {
+/* Sticker preview row in settings */
+.stickerPreviewRow {
   display: flex;
-  gap: 8px;
-  margin-bottom: 10px;
+  align-items: center;
+  gap: 6px;
 }
-.stickerEmojiInput {
+.stickerPreviewItem {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.stickerPreviewThumb {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+.stickerPreviewGlyph {
+  font-size: 22px;
+  line-height: 1;
+}
+.stickerPreviewMore {
+  font-size: 13px;
+  color: #8a6f59;
+  font-weight: 600;
+}
+.stickerAddBtnSmall {
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #4aa3ff;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: transform 0.12s ease;
+}
+.stickerAddBtnSmall:active {
+  transform: scale(0.9);
+}
+
+/* Sticker vertical list in popup */
+.stickerListVertical {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.stickerListItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid rgba(140, 111, 89, 0.15);
+}
+.stickerListGlyph {
+  font-size: 28px;
+  line-height: 1;
+}
+.stickerListThumb {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  border-radius: 6px;
+}
+.stickerListRemove {
+  margin-left: auto;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #ffe1dc;
+  color: #c0392b;
+  font-size: 16px;
+  line-height: 26px;
+  text-align: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.1s ease;
+}
+.stickerListRemove:active {
+  transform: scale(0.9);
+}
+
+/* Sticker mode buttons */
+.stickerModeButtons {
+  display: flex;
+  gap: 10px;
+}
+.stickerModeBtn {
   flex: 1;
+  border: none;
+  border-radius: 14px;
+  padding: 14px 10px;
+  font-size: 15px;
+  font-weight: 600;
+  background: #eaf4ff;
+  color: #2b6cb0;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  transition: transform 0.12s ease;
+}
+.stickerModeBtn:active {
+  transform: scale(0.95);
+}
+
+/* Sticker emoji input section */
+.stickerEmojiSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.stickerEmojiInputNew {
   border: 2px solid rgba(140, 111, 89, 0.3);
   border-radius: 12px;
-  padding: 10px 12px;
-  font-size: 22px;
+  padding: 12px 14px;
+  font-size: 28px;
   background: #fff;
   color: #5a3d28;
   outline: none;
-  min-width: 0;
+  text-align: center;
 }
-.stickerEmojiInput::placeholder {
+.stickerEmojiInputNew::placeholder {
   font-size: 15px;
   color: #b79b82;
 }
-.stickerEmojiInput:focus {
+.stickerEmojiInputNew:focus {
   border-color: #4aa3ff;
 }
-.stickerAddBtn {
-  border: none;
-  border-radius: 12px;
-  padding: 10px 16px;
-  font-size: 15px;
-  font-weight: 700;
-  background: #4aa3ff;
-  color: #fff;
-  cursor: pointer;
-  flex-shrink: 0;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
-  transition: transform 0.12s ease;
-}
-.stickerAddBtn:active {
-  transform: scale(0.92);
+
+/* Sticker image section */
+.stickerImageSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 .stickerUploadLabel {
   display: flex;
@@ -273,59 +454,31 @@
   gap: 6px;
   border: 2px dashed rgba(140, 111, 89, 0.4);
   border-radius: 12px;
-  padding: 10px;
+  padding: 14px;
   font-size: 15px;
   font-weight: 600;
   color: #8a6f59;
   cursor: pointer;
-  margin-bottom: 10px;
   transition: background 0.14s ease, border-color 0.14s ease;
 }
 .stickerUploadLabel:active {
   background: rgba(74, 163, 255, 0.08);
   border-color: #4aa3ff;
 }
-.stickerChips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 4px 0 2px;
-}
-.stickerChip {
-  position: relative;
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  background: #fff;
-  border: 2px solid rgba(140, 111, 89, 0.2);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.stickerGlyph {
-  font-size: 32px;
-  line-height: 1;
-}
-.stickerThumb {
-  width: 38px;
-  height: 38px;
-  object-fit: contain;
-  border-radius: 8px;
-}
-.stickerRemove {
-  position: absolute;
-  top: -7px;
-  right: -7px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: #c0392b;
-  color: #fff;
-  font-size: 13px;
-  line-height: 20px;
-  text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+
+/* Cancel button in sticker sub-modes */
+.stickerModeCancelBtn {
+  border: none;
+  border-radius: 12px;
+  padding: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  background: #f0e8df;
+  color: #8a6f59;
   cursor: pointer;
+  text-align: center;
+  transition: transform 0.12s ease;
+}
+.stickerModeCancelBtn:active {
+  transform: scale(0.95);
 }
