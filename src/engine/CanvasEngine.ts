@@ -3,7 +3,7 @@ import { angle, centroid, clamp, dist, distToSegment, type Point } from "./geome
 import { GRID_LINE_RGBA, GRID_MIN_STEP_EXPORT_PX, GRID_STEP_CSS_PX } from "../constants/canvasBackground";
 
 export type Tool = "paint" | "eraser" | "emoji";
-export type CanvasBackgroundMode = "beige" | "current" | "white" | "black" | "grid";
+export type CanvasBackgroundMode = "beige" | "white" | "black" | "grid";
 
 interface EmojiBase {
   cx: number;
@@ -62,7 +62,7 @@ export class CanvasEngine {
 
   private activeTool: Tool = "paint";
   private currentColor = "#4aa3ff";
-  private backgroundMode: CanvasBackgroundMode = "current";
+  private backgroundMode: CanvasBackgroundMode = "beige";
   private emojis: EmojiObj[] = [];
   private segments: Segment[] = [];
   private currentSeg: Segment | null = null;

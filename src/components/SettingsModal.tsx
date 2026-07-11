@@ -18,25 +18,6 @@ function BgIconBeige({ size = 28 }: { size?: number }) {
   );
 }
 
-function BgIconCurrent({ size = 28 }: { size?: number }) {
-  const id = useId();
-  const clipId = `bgCurrentClip-${id}`;
-  return (
-    <svg viewBox="0 0 36 36" width={size} height={size} aria-hidden="true">
-      <defs>
-        <clipPath id={clipId}>
-          <rect x="1" y="1" width="34" height="34" rx="7"/>
-        </clipPath>
-      </defs>
-      <g clipPath={`url(#${clipId})`}>
-        <rect width="36" height="36" fill="#c0c0c0"/>
-        <rect x="0" y="0" width="18" height="18" fill="#efefef"/>
-        <rect x="18" y="18" width="18" height="18" fill="#efefef"/>
-      </g>
-      <rect x="1" y="1" width="34" height="34" rx="7" fill="none" stroke="#adadad" strokeWidth="1.5"/>
-    </svg>
-  );
-}
 
 function BgIconWhite({ size = 28 }: { size?: number }) {
   return (
@@ -353,7 +334,7 @@ export function SettingsModal({
           </div>
 
           <div className="srow">
-            <span className="lbl">Canvas Background</span>
+            <span className="lbl">Background</span>
             <div className="bgOptions">
               <button
                 className={"bgOptBtn" + (canvasBackground === "beige" ? " sel" : "")}
@@ -361,13 +342,6 @@ export function SettingsModal({
                 onClick={() => onCanvasBackgroundChange("beige")}
               >
                 <BgIconBeige />
-              </button>
-              <button
-                className={"bgOptBtn" + (canvasBackground === "current" ? " sel" : "")}
-                aria-label="Current background"
-                onClick={() => onCanvasBackgroundChange("current")}
-              >
-                <BgIconCurrent />
               </button>
               <button
                 className={"bgOptBtn" + (canvasBackground === "white" ? " sel" : "")}
