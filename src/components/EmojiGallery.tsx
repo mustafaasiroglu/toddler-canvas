@@ -20,6 +20,7 @@ export function EmojiGallery({ open, customStickers, onClose, onPick }: EmojiGal
   const scrollRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<(HTMLElement | null)[]>([]);
   const clickScroll = useRef(false); // ignore scroll events triggered by a tab tap
+  const lockTimerRef = useRef<number | null>(null);
 
   const allCategories = useMemo(() => {
     if (!customStickers.length) return CATEGORIES;
@@ -28,16 +29,29 @@ export function EmojiGallery({ open, customStickers, onClose, onPick }: EmojiGal
 
   // Restore last position and category whenever the gallery is (re)opened.
   useEffect(() => {
+    if (lockTimerRef.current !== null) {
+      window.clearTimeout(lockTimerRef.current);
+      lockTimerRef.current = null;
+    }
+
     if (open) {
       setActiveCat(_savedCat);
       scrollRef.current?.scrollTo({ top: _savedScrollTop });
       setInteractionLocked(true);
-      const timer = window.setTimeout(() => {
+      lockTimerRef.current = window.setTimeout(() => {
         setInteractionLocked(false);
+        lockTimerRef.current = null;
       }, OPEN_INTERACTION_LOCK_MS);
-      return () => window.clearTimeout(timer);
+    } else {
+      setInteractionLocked(false);
     }
-    setInteractionLocked(false);
+
+    return () => {
+      if (lockTimerRef.current !== null) {
+        window.clearTimeout(lockTimerRef.current);
+        lockTimerRef.current = null;
+      }
+    };
   }, [open]);
 
   // Highlight the category whose section is currently at the top of the list.
