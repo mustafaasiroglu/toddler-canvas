@@ -577,7 +577,12 @@ export function SettingsModal({
                 ✕
               </button>
             </div>
-            <img src={exportDataUrl} alt="Canvas export preview" className="exportPreviewImg" />
+            <img
+              src={exportDataUrl}
+              alt="Canvas export preview"
+              className="exportPreviewImg"
+              onContextMenu={(e) => e.nativeEvent.stopPropagation()}
+            />
             {isIOS ? (
               <p className="exportSaveHint">📱 Press and hold the image above, then tap <strong>Save to Photos</strong></p>
             ) : (
