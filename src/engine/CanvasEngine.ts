@@ -1,7 +1,9 @@
 import { AudioEngine } from "./audio";
 import { angle, centroid, clamp, dist, distToSegment, type Point } from "./geometry";
+import { GRID_LINE_RGBA, GRID_MIN_STEP_EXPORT_PX, GRID_STEP_CSS_PX } from "../constants/canvasBackground";
 
 export type Tool = "paint" | "eraser" | "emoji";
+export type CanvasBackgroundMode = "current" | "white" | "black" | "grid";
 
 interface EmojiBase {
   cx: number;
@@ -60,6 +62,7 @@ export class CanvasEngine {
 
   private activeTool: Tool = "paint";
   private currentColor = "#4aa3ff";
+  private backgroundMode: CanvasBackgroundMode = "current";
   private emojis: EmojiObj[] = [];
   private segments: Segment[] = [];
   private currentSeg: Segment | null = null;
@@ -147,6 +150,10 @@ export class CanvasEngine {
     this.currentColor = hex;
   }
 
+  setBackground(mode: CanvasBackgroundMode): void {
+    this.backgroundMode = mode;
+  }
+
   resume(): void {
     this.audio.ensure();
   }
@@ -227,9 +234,7 @@ export class CanvasEngine {
     const ctx = tmp.getContext("2d");
     if (!ctx) return "";
 
-    // White background
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, w, h);
+    this.drawBackground(ctx, w, h);
 
     // Composite all drawing segments and emoji layers in DOM order (add order = z order).
     // Walk the layer's children to preserve correct stacking.
@@ -254,6 +259,54 @@ export class CanvasEngine {
     }
 
     return tmp.toDataURL("image/png");
+  }
+
+  private drawBackground(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+    if (this.backgroundMode === "white") {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, w, h);
+      return;
+    }
+    if (this.backgroundMode === "black") {
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(0, 0, w, h);
+      return;
+    }
+    if (this.backgroundMode === "grid") {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, w, h);
+      // Start from the on-screen CSS cell size (GRID_STEP_CSS_PX), then scale by DPR
+      // for export so the pattern keeps the same visual density. Clamp to
+      // GRID_MIN_STEP_EXPORT_PX so very small/high-DPI exports don't become too dense.
+      const step = Math.max(GRID_MIN_STEP_EXPORT_PX, Math.round(GRID_STEP_CSS_PX * this.dpr));
+      ctx.strokeStyle = GRID_LINE_RGBA;
+      ctx.lineWidth = Math.max(1, this.dpr * 0.8);
+      ctx.beginPath();
+      for (let x = 0; x <= w; x += step) {
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+      }
+      for (let y = 0; y <= h; y += step) {
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+      }
+      ctx.stroke();
+      return;
+    }
+
+    const grad = ctx.createRadialGradient(
+      0.15 * w,
+      0.1 * h,
+      0,
+      0.15 * w,
+      0.1 * h,
+      Math.max(w * 1.2, h * 0.9),
+    );
+    grad.addColorStop(0, "#fff7ee");
+    grad.addColorStop(0.45, "#fdeede");
+    grad.addColorStop(1, "#ffe6cf");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
   }
 
   destroy(): void {

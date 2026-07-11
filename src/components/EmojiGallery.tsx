@@ -12,12 +12,16 @@ interface EmojiGalleryProps {
 // Persisted across open/close cycles (survives component unmount).
 let _savedCat = 0;
 let _savedScrollTop = 0;
+const OPEN_INTERACTION_LOCK_MS = 1000;
+// Keep a short lock while the popup animates in, to prevent accidental taps.
 
 export function EmojiGallery({ open, customStickers, onClose, onPick }: EmojiGalleryProps) {
   const [activeCat, setActiveCat] = useState(_savedCat);
+  const [interactionLocked, setInteractionLocked] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<(HTMLElement | null)[]>([]);
   const clickScroll = useRef(false); // ignore scroll events triggered by a tab tap
+  const lockTimerRef = useRef<number | null>(null);
 
   const allCategories = useMemo(() => {
     if (!customStickers.length) return CATEGORIES;
@@ -26,10 +30,29 @@ export function EmojiGallery({ open, customStickers, onClose, onPick }: EmojiGal
 
   // Restore last position and category whenever the gallery is (re)opened.
   useEffect(() => {
+    if (lockTimerRef.current !== null) {
+      window.clearTimeout(lockTimerRef.current);
+      lockTimerRef.current = null;
+    }
+
     if (open) {
       setActiveCat(_savedCat);
       scrollRef.current?.scrollTo({ top: _savedScrollTop });
+      setInteractionLocked(true);
+      lockTimerRef.current = window.setTimeout(() => {
+        setInteractionLocked(false);
+        lockTimerRef.current = null;
+      }, OPEN_INTERACTION_LOCK_MS);
+    } else {
+      setInteractionLocked(false);
     }
+
+    return () => {
+      if (lockTimerRef.current !== null) {
+        window.clearTimeout(lockTimerRef.current);
+        lockTimerRef.current = null;
+      }
+    };
   }, [open]);
 
   // Highlight the category whose section is currently at the top of the list.
@@ -79,6 +102,7 @@ export function EmojiGallery({ open, customStickers, onClose, onPick }: EmojiGal
               <button
                 key={cat.icon}
                 className={"tab" + (idx === activeCat ? " sel" : "")}
+                disabled={interactionLocked}
                 onClick={() => goToCat(idx)}
               >
                 {cat.icon}
@@ -101,7 +125,8 @@ export function EmojiGallery({ open, customStickers, onClose, onPick }: EmojiGal
                 {cat.items.map((ch, i) => (
                   <button
                     key={ch.startsWith("data:") ? `${ch.slice(0, 30)}-${ch.length}` : ch + i}
-                    className="cell"
+                    className={"cell" + (interactionLocked ? " locked" : "")}
+                    disabled={interactionLocked}
                     onClick={() => onPick(ch)}
                   >
                     {ch.startsWith("data:") ? (

@@ -105,6 +105,10 @@
 .tab:active {
   transform: scale(0.9);
 }
+.tab:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
 .tab.sel {
   background: #4aa3ff;
   box-shadow: 0 4px 12px rgba(74, 163, 255, 0.45);
@@ -167,6 +171,10 @@
 .cell:active {
   transform: scale(0.82);
   background: rgba(255, 255, 255, 0.6);
+}
+.cell.locked {
+  opacity: 0.6;
+  cursor: default;
 }
 .cell-img {
   width: 100%;
