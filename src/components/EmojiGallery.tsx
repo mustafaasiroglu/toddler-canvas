@@ -72,6 +72,7 @@ export function EmojiGallery({ open, customStickers, onClose, onPick }: EmojiGal
   }, []);
 
   const goToCat = useCallback((idx: number) => {
+    if (interactionLocked) return;
     _savedCat = idx;
     setActiveCat(idx);
     const sec = sectionRefs.current[idx];
@@ -102,7 +103,6 @@ export function EmojiGallery({ open, customStickers, onClose, onPick }: EmojiGal
               <button
                 key={cat.icon}
                 className={"tab" + (idx === activeCat ? " sel" : "")}
-                disabled={interactionLocked}
                 onClick={() => goToCat(idx)}
               >
                 {cat.icon}
@@ -125,9 +125,8 @@ export function EmojiGallery({ open, customStickers, onClose, onPick }: EmojiGal
                 {cat.items.map((ch, i) => (
                   <button
                     key={ch.startsWith("data:") ? `${ch.slice(0, 30)}-${ch.length}` : ch + i}
-                    className={"cell" + (interactionLocked ? " locked" : "")}
-                    disabled={interactionLocked}
-                    onClick={() => onPick(ch)}
+                    className="cell"
+                    onClick={() => { if (!interactionLocked) onPick(ch); }}
                   >
                     {ch.startsWith("data:") ? (
                       <img src={ch} alt="sticker" className="cell-img" />
