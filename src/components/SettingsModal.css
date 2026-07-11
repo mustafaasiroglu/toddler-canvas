@@ -336,21 +336,20 @@
 }
 .stickerEditBtnSmall {
   border: none;
+  background: #f0e8df;
+  color: #8a6f59;
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  background: #4aa3ff;
-  color: #fff;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  transition: transform 0.12s ease;
+  transition: background 0.14s ease;
 }
 .stickerEditBtnSmall:active {
-  transform: scale(0.9);
+  background: rgba(0, 0, 0, 0.1);
 }
 
 /* Sticker vertical list in popup */
@@ -546,4 +545,11 @@
   text-align: center;
   text-decoration: none;
   border-radius: 16px;
+}
+.exportSaveHint {
+  margin: 0;
+  font-size: 14px;
+  color: #5a3d28;
+  text-align: center;
+  line-height: 1.5;
 }
