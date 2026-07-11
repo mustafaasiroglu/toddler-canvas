@@ -89,25 +89,20 @@
   justify-content: flex-end;
 }
 .bgOptBtn {
-  border: 1px solid rgba(140, 111, 89, 0.24);
-  border-radius: 10px;
-  padding: 7px 10px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #6e4f39;
-  background: #fff;
+  border: 2px solid rgba(140, 111, 89, 0.24);
+  border-radius: 12px;
+  padding: 3px;
+  background: none;
   cursor: pointer;
+  line-height: 0;
+  transition: border-color 0.14s ease, box-shadow 0.14s ease;
 }
 .bgOptBtn:active {
   transform: scale(0.95);
 }
 .bgOptBtn.sel {
   border-color: #4aa3ff;
-  box-shadow: 0 0 0 2px rgba(74, 163, 255, 0.18);
-}
-.bgOptBtnGrid {
-  background-color: #fff;
-  border-style: dashed;
+  box-shadow: 0 0 0 2px rgba(74, 163, 255, 0.28);
 }
 .btnBig {
   border: none;

@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState, type ChangeEvent, type PointerEvent as ReactPointerEvent } from "react";
+import { Fragment, useEffect, useId, useRef, useState, type ChangeEvent, type PointerEvent as ReactPointerEvent } from "react";
 import type { CanvasBackgroundMode } from "../engine/CanvasEngine";
 import "./SettingsModal.css";
 
@@ -6,6 +6,65 @@ function PencilIcon({ size = 15 }: { size?: number }) {
   return (
     <svg viewBox="0 0 16 16" width={size} height={size} fill="currentColor" aria-hidden="true">
       <path d="M12.146.146a.5.5 0 0 1 .707 0l3 3a.5.5 0 0 1 0 .707l-10 10a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+    </svg>
+  );
+}
+
+function BgIconCurrent({ size = 36 }: { size?: number }) {
+  const id = useId();
+  const clipId = `bgCurrentClip-${id}`;
+  return (
+    <svg viewBox="0 0 36 36" width={size} height={size} aria-hidden="true">
+      <defs>
+        <clipPath id={clipId}>
+          <rect x="1" y="1" width="34" height="34" rx="7"/>
+        </clipPath>
+      </defs>
+      <g clipPath={`url(#${clipId})`}>
+        <rect width="36" height="36" fill="#c0c0c0"/>
+        <rect x="0" y="0" width="18" height="18" fill="#efefef"/>
+        <rect x="18" y="18" width="18" height="18" fill="#efefef"/>
+      </g>
+      <rect x="1" y="1" width="34" height="34" rx="7" fill="none" stroke="#adadad" strokeWidth="1.5"/>
+    </svg>
+  );
+}
+
+function BgIconWhite({ size = 36 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 36 36" width={size} height={size} aria-hidden="true">
+      <rect x="1" y="1" width="34" height="34" rx="7" fill="#ffffff" stroke="#d0d0d0" strokeWidth="1.5"/>
+    </svg>
+  );
+}
+
+function BgIconBlack({ size = 36 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 36 36" width={size} height={size} aria-hidden="true">
+      <rect x="1" y="1" width="34" height="34" rx="7" fill="#111111" stroke="#444444" strokeWidth="1.5"/>
+    </svg>
+  );
+}
+
+function BgIconGrid({ size = 36 }: { size?: number }) {
+  const id = useId();
+  const clipId = `bgGridClip-${id}`;
+  return (
+    <svg viewBox="0 0 36 36" width={size} height={size} aria-hidden="true">
+      <defs>
+        <clipPath id={clipId}>
+          <rect x="1" y="1" width="34" height="34" rx="7"/>
+        </clipPath>
+      </defs>
+      <rect x="1" y="1" width="34" height="34" rx="7" fill="#ffffff" stroke="#d0d0d0" strokeWidth="1.5"/>
+      <g clipPath={`url(#${clipId})`} stroke="#888888" strokeWidth="0.9" strokeOpacity="0.5">
+        <line x1="9" y1="1" x2="9" y2="35"/>
+        <line x1="18" y1="1" x2="18" y2="35"/>
+        <line x1="27" y1="1" x2="27" y2="35"/>
+        <line x1="1" y1="9" x2="35" y2="9"/>
+        <line x1="1" y1="18" x2="35" y2="18"/>
+        <line x1="1" y1="27" x2="35" y2="27"/>
+      </g>
     </svg>
   );
 }
@@ -290,27 +349,31 @@ export function SettingsModal({
             <div className="bgOptions">
               <button
                 className={"bgOptBtn" + (canvasBackground === "current" ? " sel" : "")}
+                aria-label="Current background"
                 onClick={() => onCanvasBackgroundChange("current")}
               >
-                Current
+                <BgIconCurrent />
               </button>
               <button
                 className={"bgOptBtn" + (canvasBackground === "white" ? " sel" : "")}
+                aria-label="White background"
                 onClick={() => onCanvasBackgroundChange("white")}
               >
-                White
+                <BgIconWhite />
               </button>
               <button
                 className={"bgOptBtn" + (canvasBackground === "black" ? " sel" : "")}
+                aria-label="Black background"
                 onClick={() => onCanvasBackgroundChange("black")}
               >
-                Black
+                <BgIconBlack />
               </button>
               <button
-                className={"bgOptBtn bgOptBtnGrid" + (canvasBackground === "grid" ? " sel" : "")}
+                className={"bgOptBtn" + (canvasBackground === "grid" ? " sel" : "")}
+                aria-label="Grid background"
                 onClick={() => onCanvasBackgroundChange("grid")}
               >
-                Grid
+                <BgIconGrid />
               </button>
             </div>
           </div>
