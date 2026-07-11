@@ -5,8 +5,9 @@
   display: none;
   align-items: center;
   justify-content: center;
-  background: rgba(40, 26, 14, 0.42);
-  backdrop-filter: blur(4px);
+  background: rgba(40, 26, 14, 0.08);
+  backdrop-filter: blur(1px);
+  -webkit-backdrop-filter: blur(1px);
   padding: calc(8px + env(safe-area-inset-top)) 8px calc(8px + env(safe-area-inset-bottom)) 8px;
 }
 #settingsOverlay.open {
