@@ -248,10 +248,12 @@ export function SettingsModal({
     // Auto-submit and close when a single character (emoji) is entered
     const trimmed = val.trim();
     if (trimmed.length > 0) {
-      // Use Array.from to handle multi-byte emoji as single character
-      const chars = Array.from(trimmed);
-      if (chars.length > 0) {
-        onAddCustomSticker(chars[0]);
+      // Use Intl.Segmenter to correctly handle multi-codepoint grapheme clusters
+      // (e.g. flag emojis like 🇹🇷 are two code points but one visible character).
+      const segmenter = new Intl.Segmenter();
+      const segments = Array.from(segmenter.segment(trimmed));
+      if (segments.length > 0) {
+        onAddCustomSticker(segments[0].segment);
         setEmojiInput("");
         setStickerMode(null);
         // Blur the input to dismiss the keyboard on mobile
