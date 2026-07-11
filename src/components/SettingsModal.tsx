@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState, type ChangeEvent, type PointerEvent as ReactPointerEvent } from "react";
+import { Fragment, useEffect, useId, useRef, useState, type ChangeEvent, type PointerEvent as ReactPointerEvent } from "react";
 import type { CanvasBackgroundMode } from "../engine/CanvasEngine";
 import "./SettingsModal.css";
 
@@ -11,14 +11,16 @@ function PencilIcon({ size = 15 }: { size?: number }) {
 }
 
 function BgIconCurrent({ size = 36 }: { size?: number }) {
+  const id = useId();
+  const clipId = `bgCurrentClip-${id}`;
   return (
     <svg viewBox="0 0 36 36" width={size} height={size} aria-hidden="true">
       <defs>
-        <clipPath id="bgCurrentClip">
+        <clipPath id={clipId}>
           <rect x="1" y="1" width="34" height="34" rx="7"/>
         </clipPath>
       </defs>
-      <g clipPath="url(#bgCurrentClip)">
+      <g clipPath={`url(#${clipId})`}>
         <rect width="36" height="36" fill="#c0c0c0"/>
         <rect x="0" y="0" width="18" height="18" fill="#efefef"/>
         <rect x="18" y="18" width="18" height="18" fill="#efefef"/>
@@ -45,15 +47,17 @@ function BgIconBlack({ size = 36 }: { size?: number }) {
 }
 
 function BgIconGrid({ size = 36 }: { size?: number }) {
+  const id = useId();
+  const clipId = `bgGridClip-${id}`;
   return (
     <svg viewBox="0 0 36 36" width={size} height={size} aria-hidden="true">
       <defs>
-        <clipPath id="bgGridClip">
+        <clipPath id={clipId}>
           <rect x="1" y="1" width="34" height="34" rx="7"/>
         </clipPath>
       </defs>
       <rect x="1" y="1" width="34" height="34" rx="7" fill="#ffffff" stroke="#d0d0d0" strokeWidth="1.5"/>
-      <g clipPath="url(#bgGridClip)" stroke="#888888" strokeWidth="0.9" strokeOpacity="0.5">
+      <g clipPath={`url(#${clipId})`} stroke="#888888" strokeWidth="0.9" strokeOpacity="0.5">
         <line x1="9" y1="1" x2="9" y2="35"/>
         <line x1="18" y1="1" x2="18" y2="35"/>
         <line x1="27" y1="1" x2="27" y2="35"/>
