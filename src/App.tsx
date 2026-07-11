@@ -32,7 +32,7 @@ const HINT_DISPLAY_DURATION_MS = 600;
 const BG_STORAGE_KEY = "tc-canvas-background";
 
 function isCanvasBackgroundMode(value: string): value is CanvasBackgroundMode {
-  return value === "current" || value === "white" || value === "black" || value === "grid";
+  return value === "beige" || value === "current" || value === "white" || value === "black" || value === "grid";
 }
 
 export default function App() {
@@ -59,7 +59,7 @@ export default function App() {
   const [canvasBackground, setCanvasBackground] = useState<CanvasBackgroundMode>(() => {
     try {
       const saved = localStorage.getItem(BG_STORAGE_KEY);
-      return saved && isCanvasBackgroundMode(saved) ? saved : "current";
+      return saved && isCanvasBackgroundMode(saved) ? saved : "beige";
     } catch {
       return "current";
     }
@@ -269,7 +269,9 @@ export default function App() {
   const penColors = colors.slice(0, 3); // first three show directly on screen
   const paletteColors = colors.slice(3); // the rest live inside the palette
   const stageStyle =
-    canvasBackground === "white"
+    canvasBackground === "beige"
+      ? { background: "#f5efe6" }
+      : canvasBackground === "white"
       ? { background: "#ffffff" }
       : canvasBackground === "black"
         ? { background: "#000000" }

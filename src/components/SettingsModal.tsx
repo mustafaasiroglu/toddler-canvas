@@ -10,7 +10,15 @@ function PencilIcon({ size = 15 }: { size?: number }) {
   );
 }
 
-function BgIconCurrent({ size = 36 }: { size?: number }) {
+function BgIconBeige({ size = 28 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 36 36" width={size} height={size} aria-hidden="true">
+      <rect x="1" y="1" width="34" height="34" rx="7" fill="#f5efe6" stroke="#d4c5b0" strokeWidth="1.5"/>
+    </svg>
+  );
+}
+
+function BgIconCurrent({ size = 28 }: { size?: number }) {
   const id = useId();
   const clipId = `bgCurrentClip-${id}`;
   return (
@@ -30,7 +38,7 @@ function BgIconCurrent({ size = 36 }: { size?: number }) {
   );
 }
 
-function BgIconWhite({ size = 36 }: { size?: number }) {
+function BgIconWhite({ size = 28 }: { size?: number }) {
   return (
     <svg viewBox="0 0 36 36" width={size} height={size} aria-hidden="true">
       <rect x="1" y="1" width="34" height="34" rx="7" fill="#ffffff" stroke="#d0d0d0" strokeWidth="1.5"/>
@@ -38,7 +46,7 @@ function BgIconWhite({ size = 36 }: { size?: number }) {
   );
 }
 
-function BgIconBlack({ size = 36 }: { size?: number }) {
+function BgIconBlack({ size = 28 }: { size?: number }) {
   return (
     <svg viewBox="0 0 36 36" width={size} height={size} aria-hidden="true">
       <rect x="1" y="1" width="34" height="34" rx="7" fill="#111111" stroke="#444444" strokeWidth="1.5"/>
@@ -46,7 +54,7 @@ function BgIconBlack({ size = 36 }: { size?: number }) {
   );
 }
 
-function BgIconGrid({ size = 36 }: { size?: number }) {
+function BgIconGrid({ size = 28 }: { size?: number }) {
   const id = useId();
   const clipId = `bgGridClip-${id}`;
   return (
@@ -347,6 +355,13 @@ export function SettingsModal({
           <div className="srow">
             <span className="lbl">Canvas Background</span>
             <div className="bgOptions">
+              <button
+                className={"bgOptBtn" + (canvasBackground === "beige" ? " sel" : "")}
+                aria-label="Beige background"
+                onClick={() => onCanvasBackgroundChange("beige")}
+              >
+                <BgIconBeige />
+              </button>
               <button
                 className={"bgOptBtn" + (canvasBackground === "current" ? " sel" : "")}
                 aria-label="Current background"
