@@ -275,8 +275,9 @@ export class CanvasEngine {
     if (this.backgroundMode === "grid") {
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, w, h);
-      // Keep exported notebook cells visually aligned with the on-screen 32px grid,
-      // while preventing overly dense lines on low-resolution outputs.
+      // Start from the on-screen CSS cell size (GRID_STEP_CSS_PX), then scale by DPR
+      // for export so the pattern keeps the same visual density. Clamp to
+      // GRID_MIN_STEP_EXPORT_PX so very small/high-DPI exports don't become too dense.
       const step = Math.max(GRID_MIN_STEP_EXPORT_PX, Math.round(GRID_STEP_CSS_PX * this.dpr));
       ctx.strokeStyle = GRID_LINE_RGBA;
       ctx.lineWidth = Math.max(1, this.dpr * 0.8);
