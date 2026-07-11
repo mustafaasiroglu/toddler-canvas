@@ -106,6 +106,10 @@ export function SettingsModal({
   const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
   const [exportPopupOpen, setExportPopupOpen] = useState(false);
   const [exportDataUrl, setExportDataUrl] = useState<string | null>(null);
+  // Covers classic iOS (iPhone/iPod/iPad) and modern iPadOS 13+ which reports as Macintosh.
+  const isIOS =
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   const colorInputRef = useRef<HTMLInputElement | null>(null);
   const emojiInputRef = useRef<HTMLInputElement | null>(null);
   const chipRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -559,38 +563,35 @@ export function SettingsModal({
       )}
 
       {/* Export PNG popup */}
-      {exportPopupOpen && exportDataUrl && (() => {
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-        return (
-          <div
-            className="subPopupOverlay"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) setExportPopupOpen(false);
-            }}
-          >
-            <div className="subPopup exportPopup">
-              <div className="subPopupHeader">
-                <h3>Export PNG</h3>
-                <button className="subPopupClose" onClick={() => setExportPopupOpen(false)}>
-                  ✕
-                </button>
-              </div>
-              <img src={exportDataUrl} alt="Canvas export preview" className="exportPreviewImg" />
-              {isIOS ? (
-                <p className="exportSaveHint">📱 Press and hold the image above, then tap <strong>Save to Photos</strong></p>
-              ) : (
-                <a
-                  href={exportDataUrl}
-                  download="toddler-canvas.png"
-                  className="btnBig btnPrimary exportDownloadBtn"
-                >
-                  ⬇ Download
-                </a>
-              )}
+      {exportPopupOpen && exportDataUrl && (
+        <div
+          className="subPopupOverlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setExportPopupOpen(false);
+          }}
+        >
+          <div className="subPopup exportPopup">
+            <div className="subPopupHeader">
+              <h3>Export PNG</h3>
+              <button className="subPopupClose" onClick={() => setExportPopupOpen(false)}>
+                ✕
+              </button>
             </div>
+            <img src={exportDataUrl} alt="Canvas export preview" className="exportPreviewImg" />
+            {isIOS ? (
+              <p className="exportSaveHint">📱 Press and hold the image above, then tap <strong>Save to Photos</strong></p>
+            ) : (
+              <a
+                href={exportDataUrl}
+                download="toddler-canvas.png"
+                className="btnBig btnPrimary exportDownloadBtn"
+              >
+                ⬇ Download
+              </a>
+            )}
           </div>
-        );
-      })()}
+        </div>
+      )}
     </div>
   );
 }
