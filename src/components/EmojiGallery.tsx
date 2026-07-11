@@ -13,6 +13,7 @@ interface EmojiGalleryProps {
 let _savedCat = 0;
 let _savedScrollTop = 0;
 const OPEN_INTERACTION_LOCK_MS = 1000;
+// Keep a short lock while the popup animates in, to prevent accidental taps.
 
 export function EmojiGallery({ open, customStickers, onClose, onPick }: EmojiGalleryProps) {
   const [activeCat, setActiveCat] = useState(_savedCat);

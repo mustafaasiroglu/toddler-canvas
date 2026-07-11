@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CanvasBackgroundMode, Tool } from "./engine/CanvasEngine";
 import { DEFAULT_COLORS } from "./data/colors";
+import { GRID_LINE_RGBA, GRID_STEP_CSS_PX } from "./constants/canvasBackground";
 import { useCanvasEngine } from "./hooks/useCanvasEngine";
 import { Toolbar } from "./components/Toolbar";
 import { Palette } from "./components/Palette";
@@ -276,8 +277,8 @@ export default function App() {
           ? {
               backgroundColor: "#ffffff",
               backgroundImage:
-                "linear-gradient(to right, rgba(120, 120, 120, 0.22) 1px, transparent 1px), linear-gradient(to bottom, rgba(120, 120, 120, 0.22) 1px, transparent 1px)",
-              backgroundSize: "32px 32px",
+                `linear-gradient(to right, ${GRID_LINE_RGBA} 1px, transparent 1px), linear-gradient(to bottom, ${GRID_LINE_RGBA} 1px, transparent 1px)`,
+              backgroundSize: `${GRID_STEP_CSS_PX}px ${GRID_STEP_CSS_PX}px`,
             }
           : undefined;
 

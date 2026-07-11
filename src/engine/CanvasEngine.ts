@@ -1,5 +1,6 @@
 import { AudioEngine } from "./audio";
 import { angle, centroid, clamp, dist, distToSegment, type Point } from "./geometry";
+import { GRID_LINE_RGBA, GRID_MIN_STEP_EXPORT_PX, GRID_STEP_CSS_PX } from "../constants/canvasBackground";
 
 export type Tool = "paint" | "eraser" | "emoji";
 export type CanvasBackgroundMode = "current" | "white" | "black" | "grid";
@@ -274,8 +275,10 @@ export class CanvasEngine {
     if (this.backgroundMode === "grid") {
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, w, h);
-      const step = Math.max(24, Math.round(32 * this.dpr));
-      ctx.strokeStyle = "rgba(120, 120, 120, 0.22)";
+      // Keep exported notebook cells visually aligned with the on-screen 32px grid,
+      // while preventing overly dense lines on low-resolution outputs.
+      const step = Math.max(GRID_MIN_STEP_EXPORT_PX, Math.round(GRID_STEP_CSS_PX * this.dpr));
+      ctx.strokeStyle = GRID_LINE_RGBA;
       ctx.lineWidth = Math.max(1, this.dpr * 0.8);
       ctx.beginPath();
       for (let x = 0; x <= w; x += step) {
