@@ -82,6 +82,36 @@
   color: #5a3d28;
   font-weight: 600;
 }
+.bgOptions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.bgOptBtn {
+  border: 1px solid rgba(140, 111, 89, 0.24);
+  border-radius: 10px;
+  padding: 7px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6e4f39;
+  background: #fff;
+  cursor: pointer;
+}
+.bgOptBtn:active {
+  transform: scale(0.95);
+}
+.bgOptBtn.sel {
+  border-color: #4aa3ff;
+  box-shadow: 0 0 0 2px rgba(74, 163, 255, 0.18);
+}
+.bgOptBtnGrid {
+  background-color: #fff;
+  background-image:
+    linear-gradient(to right, rgba(120, 120, 120, 0.22) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(120, 120, 120, 0.22) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
 .btnBig {
   border: none;
   border-radius: 16px;

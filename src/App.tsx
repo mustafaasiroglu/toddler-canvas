@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Tool } from "./engine/CanvasEngine";
+import type { CanvasBackgroundMode, Tool } from "./engine/CanvasEngine";
 import { DEFAULT_COLORS } from "./data/colors";
 import { useCanvasEngine } from "./hooks/useCanvasEngine";
 import { Toolbar } from "./components/Toolbar";
@@ -28,6 +28,11 @@ const fullscreenSupported = (() => {
 // Duration the tool hint animation plays before being unmounted (in ms).
 // The CSS animation itself is 0.5 s; this adds a small buffer.
 const HINT_DISPLAY_DURATION_MS = 600;
+const BG_STORAGE_KEY = "tc-canvas-background";
+
+function isCanvasBackgroundMode(value: string): value is CanvasBackgroundMode {
+  return value === "current" || value === "white" || value === "black" || value === "grid";
+}
 
 export default function App() {
   const [tool, setTool] = useState<Tool>("paint");
@@ -50,6 +55,14 @@ export default function App() {
       return [];
     }
   });
+  const [canvasBackground, setCanvasBackground] = useState<CanvasBackgroundMode>(() => {
+    try {
+      const saved = localStorage.getItem(BG_STORAGE_KEY);
+      return saved && isCanvasBackgroundMode(saved) ? saved : "current";
+    } catch {
+      return "current";
+    }
+  });
   const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { stageRef, engineRef } = useCanvasEngine(
@@ -69,6 +82,10 @@ export default function App() {
   useEffect(() => {
     engineRef.current?.setMuted(muted);
   }, [muted, engineRef]);
+
+  useEffect(() => {
+    engineRef.current?.setBackground(canvasBackground);
+  }, [canvasBackground, engineRef]);
 
   // Track fullscreen so the enter button hides while fullscreen is active.
   useEffect(() => {
@@ -199,6 +216,14 @@ export default function App() {
     }
   }, [customStickers]);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(BG_STORAGE_KEY, canvasBackground);
+    } catch {
+      /* quota exceeded or private mode – ignore */
+    }
+  }, [canvasBackground]);
+
   const addCustomSticker = useCallback((item: string) => {
     setCustomStickers((prev) => (prev.includes(item) ? prev : [...prev, item]));
   }, []);
@@ -242,10 +267,23 @@ export default function App() {
 
   const penColors = colors.slice(0, 3); // first three show directly on screen
   const paletteColors = colors.slice(3); // the rest live inside the palette
+  const stageStyle =
+    canvasBackground === "white"
+      ? { background: "#ffffff" }
+      : canvasBackground === "black"
+        ? { background: "#000000" }
+        : canvasBackground === "grid"
+          ? {
+              backgroundColor: "#ffffff",
+              backgroundImage:
+                "linear-gradient(to right, rgba(120, 120, 120, 0.22) 1px, transparent 1px), linear-gradient(to bottom, rgba(120, 120, 120, 0.22) 1px, transparent 1px)",
+              backgroundSize: "32px 32px",
+            }
+          : undefined;
 
   return (
     <div id="app">
-      <div className="stage" ref={stageRef} />
+      <div className="stage" ref={stageRef} style={stageStyle} />
 
       {splashOpen && <SplashScreen onStart={startFromSplash} />}
 
@@ -316,6 +354,7 @@ export default function App() {
         fullscreen={fullscreen}
         fullscreenSupported={fullscreenSupported}
         customStickers={customStickers}
+        canvasBackground={canvasBackground}
         onClose={() => setSettingsOpen(false)}
         onToggleSound={() => setMuted((m) => !m)}
         onClear={clearCanvas}
@@ -327,6 +366,7 @@ export default function App() {
         onExitFullscreen={exitFullscreen}
         onAddCustomSticker={addCustomSticker}
         onRemoveCustomSticker={removeCustomSticker}
+        onCanvasBackgroundChange={setCanvasBackground}
       />
     </div>
   );

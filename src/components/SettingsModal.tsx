@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useRef, useState, type ChangeEvent, type PointerEvent as ReactPointerEvent } from "react";
+import type { CanvasBackgroundMode } from "../engine/CanvasEngine";
 import "./SettingsModal.css";
 
 function PencilIcon({ size = 15 }: { size?: number }) {
@@ -16,6 +17,7 @@ interface SettingsModalProps {
   fullscreen: boolean;
   fullscreenSupported: boolean;
   customStickers: string[];
+  canvasBackground: CanvasBackgroundMode;
   onClose: () => void;
   onToggleSound: () => void;
   onClear: () => void;
@@ -27,6 +29,7 @@ interface SettingsModalProps {
   onExitFullscreen: () => void;
   onAddCustomSticker: (item: string) => void;
   onRemoveCustomSticker: (item: string) => void;
+  onCanvasBackgroundChange: (mode: CanvasBackgroundMode) => void;
 }
 
 interface Gate {
@@ -85,6 +88,7 @@ export function SettingsModal({
   fullscreen,
   fullscreenSupported,
   customStickers,
+  canvasBackground,
   onClose,
   onToggleSound,
   onClear,
@@ -96,6 +100,7 @@ export function SettingsModal({
   onExitFullscreen,
   onAddCustomSticker,
   onRemoveCustomSticker,
+  onCanvasBackgroundChange,
 }: SettingsModalProps) {
   const [passed, setPassed] = useState(false);
   const [gate, setGate] = useState<Gate>(makeGate);
@@ -278,6 +283,36 @@ export function SettingsModal({
             >
               <span className="knob" />
             </button>
+          </div>
+
+          <div className="srow">
+            <span className="lbl">Canvas Background</span>
+            <div className="bgOptions">
+              <button
+                className={"bgOptBtn" + (canvasBackground === "current" ? " sel" : "")}
+                onClick={() => onCanvasBackgroundChange("current")}
+              >
+                Current
+              </button>
+              <button
+                className={"bgOptBtn" + (canvasBackground === "white" ? " sel" : "")}
+                onClick={() => onCanvasBackgroundChange("white")}
+              >
+                White
+              </button>
+              <button
+                className={"bgOptBtn" + (canvasBackground === "black" ? " sel" : "")}
+                onClick={() => onCanvasBackgroundChange("black")}
+              >
+                Black
+              </button>
+              <button
+                className={"bgOptBtn bgOptBtnGrid" + (canvasBackground === "grid" ? " sel" : "")}
+                onClick={() => onCanvasBackgroundChange("grid")}
+              >
+                Grid
+              </button>
+            </div>
           </div>
 
           {/* Palette colors – preview + edit icon */}
