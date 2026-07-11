@@ -11,7 +11,7 @@ interface SettingsModalProps {
   onClose: () => void;
   onToggleSound: () => void;
   onClear: () => void;
-  onExportImage: () => void;
+  onGetExportDataUrl: () => string | undefined;
   onAddColor: (hex: string) => void;
   onRemoveColor: (hex: string) => void;
   onReorderColor: (from: number, to: number) => void;
@@ -80,7 +80,7 @@ export function SettingsModal({
   onClose,
   onToggleSound,
   onClear,
-  onExportImage,
+  onGetExportDataUrl,
   onAddColor,
   onRemoveColor,
   onReorderColor,
@@ -95,6 +95,9 @@ export function SettingsModal({
   const [stickerPopupOpen, setStickerPopupOpen] = useState(false);
   const [stickerMode, setStickerMode] = useState<"emoji" | "image" | null>(null);
   const [emojiInput, setEmojiInput] = useState("");
+  const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
+  const [exportPopupOpen, setExportPopupOpen] = useState(false);
+  const [exportDataUrl, setExportDataUrl] = useState<string | null>(null);
   const colorInputRef = useRef<HTMLInputElement | null>(null);
   const emojiInputRef = useRef<HTMLInputElement | null>(null);
   const chipRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -161,6 +164,9 @@ export function SettingsModal({
       setPalettePopupOpen(false);
       setStickerPopupOpen(false);
       setStickerMode(null);
+      setClearConfirmOpen(false);
+      setExportPopupOpen(false);
+      setExportDataUrl(null);
     }
   }, [open]);
 
@@ -266,25 +272,27 @@ export function SettingsModal({
           <div className="srow">
             <span className="lbl">Palette colors</span>
             <div className="palPreviewRow">
-              {colors.slice(0, 8).map((hex) => (
+              {colors.slice(0, 3).map((hex) => (
                 <span key={hex} className="palPreviewDot" style={{ background: hex }} />
               ))}
-              {colors.length > 8 && <span className="palPreviewMore">+{colors.length - 8}</span>}
+              {colors.length > 3 && <span className="palPreviewMore">+{colors.length - 3}</span>}
               <button
                 className="palEditBtn"
                 aria-label="Edit palette"
                 onClick={() => setPalettePopupOpen(true)}
               >
-                ✏️
+                <svg viewBox="0 0 16 16" width="15" height="15" fill="currentColor" aria-hidden="true">
+                  <path d="M12.146.146a.5.5 0 0 1 .707 0l3 3a.5.5 0 0 1 0 .707l-10 10a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+                </svg>
               </button>
             </div>
           </div>
 
-          {/* Custom Stickers – preview + add button */}
+          {/* Custom Stickers – preview + edit button */}
           <div className="srow">
             <span className="lbl">Custom Stickers</span>
             <div className="stickerPreviewRow">
-              {customStickers.slice(0, 5).map((s) => (
+              {customStickers.slice(0, 3).map((s) => (
                 <span
                   key={s.startsWith("data:") ? `${s.slice(0, 30)}-${s.length}` : s}
                   className="stickerPreviewItem"
@@ -296,38 +304,47 @@ export function SettingsModal({
                   )}
                 </span>
               ))}
-              {customStickers.length > 5 && (
-                <span className="stickerPreviewMore">+{customStickers.length - 5}</span>
+              {customStickers.length > 3 && (
+                <span className="stickerPreviewMore">+{customStickers.length - 3}</span>
               )}
               <button
-                className="stickerAddBtnSmall"
-                aria-label="Add sticker"
+                className="stickerEditBtnSmall"
+                aria-label="Edit stickers"
                 onClick={() => setStickerPopupOpen(true)}
               >
-                +
+                <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+                  <path d="M12.146.146a.5.5 0 0 1 .707 0l3 3a.5.5 0 0 1 0 .707l-10 10a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+                </svg>
               </button>
             </div>
           </div>
 
-          <div className="srow" style={{ justifyContent: "space-between" }}>
-            <button
-              className="btnBig btnDanger"
-              onClick={() => {
-                onClear();
-                onClose();
-              }}
-            >
-              Clear Canvas
-            </button>
-            <button
-              className="btnBig btnSecondary"
-              onClick={() => {
-                onExportImage();
-                onClose();
-              }}
-            >
-              Export as Image
-            </button>
+          {/* Canvas Actions */}
+          <div className="srow">
+            <span className="lbl">Canvas Actions</span>
+            <div className="canvasActionsButtons">
+              <button
+                className="actionBtn actionBtnDanger"
+                onClick={() => setClearConfirmOpen(true)}
+              >
+                Clear
+              </button>
+              <button
+                className="actionBtn actionBtnExport"
+                onClick={() => {
+                  const url = onGetExportDataUrl();
+                  if (url) {
+                    setExportDataUrl(url);
+                    setExportPopupOpen(true);
+                  }
+                }}
+              >
+                Export
+              </button>
+            </div>
+          </div>
+
+          <div className="srow" style={{ justifyContent: "flex-end", borderBottom: "none" }}>
             <button className="btnBig btnPrimary" onClick={onClose}>
               Done
             </button>
@@ -500,6 +517,66 @@ export function SettingsModal({
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Clear confirmation popup */}
+      {clearConfirmOpen && (
+        <div
+          className="subPopupOverlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setClearConfirmOpen(false);
+          }}
+        >
+          <div className="subPopup confirmPopup">
+            <h3 className="confirmTitle">Clear canvas?</h3>
+            <p className="confirmDesc">This will erase everything. This cannot be undone.</p>
+            <div className="confirmButtons">
+              <button
+                className="btnBig btnPrimary"
+                onClick={() => setClearConfirmOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="btnBig btnDanger"
+                onClick={() => {
+                  onClear();
+                  setClearConfirmOpen(false);
+                  onClose();
+                }}
+              >
+                Yes, Clear
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Export PNG popup */}
+      {exportPopupOpen && exportDataUrl && (
+        <div
+          className="subPopupOverlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setExportPopupOpen(false);
+          }}
+        >
+          <div className="subPopup exportPopup">
+            <div className="subPopupHeader">
+              <h3>Export PNG</h3>
+              <button className="subPopupClose" onClick={() => setExportPopupOpen(false)}>
+                ✕
+              </button>
+            </div>
+            <img src={exportDataUrl} alt="Canvas export preview" className="exportPreviewImg" />
+            <a
+              href={exportDataUrl}
+              download="toddler-canvas.png"
+              className="btnBig btnPrimary exportDownloadBtn"
+            >
+              ⬇ Download
+            </a>
           </div>
         </div>
       )}
