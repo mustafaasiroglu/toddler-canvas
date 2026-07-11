@@ -559,31 +559,38 @@ export function SettingsModal({
       )}
 
       {/* Export PNG popup */}
-      {exportPopupOpen && exportDataUrl && (
-        <div
-          className="subPopupOverlay"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setExportPopupOpen(false);
-          }}
-        >
-          <div className="subPopup exportPopup">
-            <div className="subPopupHeader">
-              <h3>Export PNG</h3>
-              <button className="subPopupClose" onClick={() => setExportPopupOpen(false)}>
-                ✕
-              </button>
+      {exportPopupOpen && exportDataUrl && (() => {
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        return (
+          <div
+            className="subPopupOverlay"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setExportPopupOpen(false);
+            }}
+          >
+            <div className="subPopup exportPopup">
+              <div className="subPopupHeader">
+                <h3>Export PNG</h3>
+                <button className="subPopupClose" onClick={() => setExportPopupOpen(false)}>
+                  ✕
+                </button>
+              </div>
+              <img src={exportDataUrl} alt="Canvas export preview" className="exportPreviewImg" />
+              {isIOS ? (
+                <p className="exportSaveHint">📱 Press and hold the image above, then tap <strong>Save to Photos</strong></p>
+              ) : (
+                <a
+                  href={exportDataUrl}
+                  download="toddler-canvas.png"
+                  className="btnBig btnPrimary exportDownloadBtn"
+                >
+                  ⬇ Download
+                </a>
+              )}
             </div>
-            <img src={exportDataUrl} alt="Canvas export preview" className="exportPreviewImg" />
-            <a
-              href={exportDataUrl}
-              download="toddler-canvas.png"
-              className="btnBig btnPrimary exportDownloadBtn"
-            >
-              ⬇ Download
-            </a>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
