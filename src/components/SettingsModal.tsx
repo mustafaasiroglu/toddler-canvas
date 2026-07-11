@@ -10,6 +10,61 @@ function PencilIcon({ size = 15 }: { size?: number }) {
   );
 }
 
+function BgIconCurrent({ size = 36 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 36 36" width={size} height={size} aria-hidden="true">
+      <defs>
+        <clipPath id="bgCurrentClip">
+          <rect x="1" y="1" width="34" height="34" rx="7"/>
+        </clipPath>
+      </defs>
+      <g clipPath="url(#bgCurrentClip)">
+        <rect width="36" height="36" fill="#c0c0c0"/>
+        <rect x="0" y="0" width="18" height="18" fill="#efefef"/>
+        <rect x="18" y="18" width="18" height="18" fill="#efefef"/>
+      </g>
+      <rect x="1" y="1" width="34" height="34" rx="7" fill="none" stroke="#adadad" strokeWidth="1.5"/>
+    </svg>
+  );
+}
+
+function BgIconWhite({ size = 36 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 36 36" width={size} height={size} aria-hidden="true">
+      <rect x="1" y="1" width="34" height="34" rx="7" fill="#ffffff" stroke="#d0d0d0" strokeWidth="1.5"/>
+    </svg>
+  );
+}
+
+function BgIconBlack({ size = 36 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 36 36" width={size} height={size} aria-hidden="true">
+      <rect x="1" y="1" width="34" height="34" rx="7" fill="#111111" stroke="#444444" strokeWidth="1.5"/>
+    </svg>
+  );
+}
+
+function BgIconGrid({ size = 36 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 36 36" width={size} height={size} aria-hidden="true">
+      <defs>
+        <clipPath id="bgGridClip">
+          <rect x="1" y="1" width="34" height="34" rx="7"/>
+        </clipPath>
+      </defs>
+      <rect x="1" y="1" width="34" height="34" rx="7" fill="#ffffff" stroke="#d0d0d0" strokeWidth="1.5"/>
+      <g clipPath="url(#bgGridClip)" stroke="#888888" strokeWidth="0.9" strokeOpacity="0.5">
+        <line x1="9" y1="1" x2="9" y2="35"/>
+        <line x1="18" y1="1" x2="18" y2="35"/>
+        <line x1="27" y1="1" x2="27" y2="35"/>
+        <line x1="1" y1="9" x2="35" y2="9"/>
+        <line x1="1" y1="18" x2="35" y2="18"/>
+        <line x1="1" y1="27" x2="35" y2="27"/>
+      </g>
+    </svg>
+  );
+}
+
 interface SettingsModalProps {
   open: boolean;
   muted: boolean;
@@ -290,27 +345,31 @@ export function SettingsModal({
             <div className="bgOptions">
               <button
                 className={"bgOptBtn" + (canvasBackground === "current" ? " sel" : "")}
+                aria-label="Current background"
                 onClick={() => onCanvasBackgroundChange("current")}
               >
-                Current
+                <BgIconCurrent />
               </button>
               <button
                 className={"bgOptBtn" + (canvasBackground === "white" ? " sel" : "")}
+                aria-label="White background"
                 onClick={() => onCanvasBackgroundChange("white")}
               >
-                White
+                <BgIconWhite />
               </button>
               <button
                 className={"bgOptBtn" + (canvasBackground === "black" ? " sel" : "")}
+                aria-label="Black background"
                 onClick={() => onCanvasBackgroundChange("black")}
               >
-                Black
+                <BgIconBlack />
               </button>
               <button
-                className={"bgOptBtn bgOptBtnGrid" + (canvasBackground === "grid" ? " sel" : "")}
+                className={"bgOptBtn" + (canvasBackground === "grid" ? " sel" : "")}
+                aria-label="Grid background"
                 onClick={() => onCanvasBackgroundChange("grid")}
               >
-                Grid
+                <BgIconGrid />
               </button>
             </div>
           </div>
