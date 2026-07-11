@@ -32,7 +32,7 @@ const HINT_DISPLAY_DURATION_MS = 600;
 const BG_STORAGE_KEY = "tc-canvas-background";
 
 function isCanvasBackgroundMode(value: string): value is CanvasBackgroundMode {
-  return value === "beige" || value === "current" || value === "white" || value === "black" || value === "grid";
+  return value === "beige" || value === "white" || value === "black" || value === "grid";
 }
 
 export default function App() {
