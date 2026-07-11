@@ -61,7 +61,7 @@ export default function App() {
       const saved = localStorage.getItem(BG_STORAGE_KEY);
       return saved && isCanvasBackgroundMode(saved) ? saved : "beige";
     } catch {
-      return "current";
+      return "beige";
     }
   });
   const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
