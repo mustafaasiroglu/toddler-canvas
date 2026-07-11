@@ -12,9 +12,11 @@ interface EmojiGalleryProps {
 // Persisted across open/close cycles (survives component unmount).
 let _savedCat = 0;
 let _savedScrollTop = 0;
+const OPEN_INTERACTION_LOCK_MS = 1000;
 
 export function EmojiGallery({ open, customStickers, onClose, onPick }: EmojiGalleryProps) {
   const [activeCat, setActiveCat] = useState(_savedCat);
+  const [interactionLocked, setInteractionLocked] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<(HTMLElement | null)[]>([]);
   const clickScroll = useRef(false); // ignore scroll events triggered by a tab tap
@@ -29,7 +31,13 @@ export function EmojiGallery({ open, customStickers, onClose, onPick }: EmojiGal
     if (open) {
       setActiveCat(_savedCat);
       scrollRef.current?.scrollTo({ top: _savedScrollTop });
+      setInteractionLocked(true);
+      const timer = window.setTimeout(() => {
+        setInteractionLocked(false);
+      }, OPEN_INTERACTION_LOCK_MS);
+      return () => window.clearTimeout(timer);
     }
+    setInteractionLocked(false);
   }, [open]);
 
   // Highlight the category whose section is currently at the top of the list.
@@ -79,6 +87,7 @@ export function EmojiGallery({ open, customStickers, onClose, onPick }: EmojiGal
               <button
                 key={cat.icon}
                 className={"tab" + (idx === activeCat ? " sel" : "")}
+                disabled={interactionLocked}
                 onClick={() => goToCat(idx)}
               >
                 {cat.icon}
@@ -101,7 +110,8 @@ export function EmojiGallery({ open, customStickers, onClose, onPick }: EmojiGal
                 {cat.items.map((ch, i) => (
                   <button
                     key={ch.startsWith("data:") ? `${ch.slice(0, 30)}-${ch.length}` : ch + i}
-                    className="cell"
+                    className={"cell" + (interactionLocked ? " locked" : "")}
+                    disabled={interactionLocked}
                     onClick={() => onPick(ch)}
                   >
                     {ch.startsWith("data:") ? (
