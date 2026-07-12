@@ -28,7 +28,7 @@ export function Palette({
   return (
     <div id="palette" className={visible ? "show" : undefined}>
       <div className="brushSliderRow">
-        <span className="brushSliderLabel">İnce</span>
+        <span className="brushSliderLabel">Thin</span>
         <input
           className="brushSlider"
           type="range"
@@ -38,7 +38,7 @@ export function Palette({
           aria-label="Brush thickness"
           onChange={(e) => onBrushSizeChange(Number(e.target.value))}
         />
-        <span className="brushSliderLabel">Kalın</span>
+        <span className="brushSliderLabel">Thick</span>
       </div>
 
       <div className="paletteSwatches">
