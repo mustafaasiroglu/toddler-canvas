@@ -266,7 +266,7 @@ export function SettingsModal({
     const files = Array.from(e.target.files ?? []);
     for (const file of files) {
       try {
-        const dataUrl = await resizeImageFile(file, 256);
+        const dataUrl = await resizeImageFile(file, 512);
         onAddCustomSticker(dataUrl);
       } catch (err) {
         console.warn("Custom sticker: could not process image file", err);
