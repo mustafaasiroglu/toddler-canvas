@@ -164,12 +164,12 @@
 }
 .holdRingTrack {
   fill: none;
-  stroke: rgba(192, 57, 43, 0.15);
+  stroke: rgba(74, 163, 255, 0.15);
   stroke-width: 7;
 }
 .holdRingFill {
   fill: none;
-  stroke: #c0392b;
+  stroke: #4aa3ff;
   stroke-width: 7;
   stroke-linecap: round;
   transform: rotate(-90deg);
