@@ -5,13 +5,11 @@
   transform: translateX(-50%) translateY(18px);
   z-index: 100;
   display: flex;
-  flex-wrap: nowrap;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 10px;
-  padding: 11px 14px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  padding: 12px 14px;
   max-width: min(92vw, 520px);
-  overflow-x: auto;
   background: var(--bar-bg);
   border-radius: 30px;
   box-shadow: var(--shadow);
@@ -25,6 +23,30 @@
   pointer-events: auto;
   transform: translateX(-50%) translateY(0);
 }
+.brushSliderRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.brushSliderLabel {
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-weight: 700;
+  color: #5f6770;
+}
+.brushSlider {
+  flex: 1 1 auto;
+  accent-color: #8a8f96;
+}
+.paletteSwatches {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
 .swatch {
   width: 42px;
   height: 42px;
@@ -34,6 +56,7 @@
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18);
   cursor: pointer;
   transition: transform 0.14s ease, box-shadow 0.14s ease;
+  padding: 0;
 }
 .swatch:active {
   transform: scale(0.88);
@@ -41,6 +64,30 @@
 .swatch.sel {
   transform: scale(1.18);
   box-shadow: var(--ring);
+}
+.swatch-custom {
+  position: relative;
+  overflow: hidden;
+}
+.swatchCustomBadge {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: #3f4650;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22);
+}
+.paletteCustomInput {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
 }
 @media (max-width: 480px) {
   #palette {
@@ -53,7 +100,14 @@
     height: 38px;
   }
   #palette {
+    gap: 10px;
+    padding: 11px 12px;
+  }
+  .brushSliderRow,
+  .paletteSwatches {
     gap: 8px;
-    padding: 10px 12px;
+  }
+  .brushSliderLabel {
+    font-size: 12px;
   }
 }
