@@ -196,9 +196,11 @@ export default function App() {
         if (prev.length === 0) return [nextHex];
         const lastIndex = prev.length - 1;
         const currentCustom = prev[lastIndex];
-        const existingIndex = prev.findIndex((colorHex, index) => index !== lastIndex && colorHex === nextHex);
+        const duplicateColorIndex = prev.findIndex(
+          (colorHex, index) => index !== lastIndex && colorHex === nextHex,
+        );
         const next = [...prev];
-        if (existingIndex >= 0) next[existingIndex] = currentCustom;
+        if (duplicateColorIndex >= 0) next[duplicateColorIndex] = currentCustom;
         next[lastIndex] = nextHex;
         return next;
       });

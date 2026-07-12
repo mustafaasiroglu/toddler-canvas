@@ -10,7 +10,6 @@
   gap: 12px;
   padding: 12px 14px;
   max-width: min(92vw, 520px);
-  width: min(92vw, 520px);
   background: var(--bar-bg);
   border-radius: 30px;
   box-shadow: var(--shadow);
