@@ -1,9 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  DEFAULT_BRUSH_SIZE,
-  type CanvasBackgroundMode,
-  type Tool,
-} from "./engine/CanvasEngine";
+import type { CanvasBackgroundMode, Tool } from "./engine/CanvasEngine";
 import { DEFAULT_COLORS } from "./data/colors";
 import { GRID_LINE_RGBA, GRID_STEP_CSS_PX } from "./constants/canvasBackground";
 import { useCanvasEngine } from "./hooks/useCanvasEngine";
@@ -44,7 +40,6 @@ export default function App() {
   const [color, setColor] = useState(DEFAULT_COLORS[0]);
   const [rainbowColor, setRainbowColor] = useState(DEFAULT_COLORS[3]); // last palette pick
   const [colors, setColors] = useState<string[]>(DEFAULT_COLORS);
-  const [brushSize, setBrushSize] = useState(DEFAULT_BRUSH_SIZE);
   const [muted, setMuted] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(false);
@@ -84,10 +79,6 @@ export default function App() {
   useEffect(() => {
     engineRef.current?.setColor(color);
   }, [color, engineRef]);
-
-  useEffect(() => {
-    engineRef.current?.setBrushSize(brushSize);
-  }, [brushSize, engineRef]);
 
   useEffect(() => {
     engineRef.current?.setMuted(muted);
@@ -189,26 +180,6 @@ export default function App() {
     [engineRef],
   );
 
-  const selectCustomColor = useCallback(
-    (hex: string) => {
-      const nextHex = hex.toLowerCase();
-      setColors((prev) => {
-        if (prev.length === 0) return [nextHex];
-        const lastIndex = prev.length - 1;
-        const currentCustom = prev[lastIndex];
-        const duplicateColorIndex = prev.findIndex(
-          (colorHex, index) => index !== lastIndex && colorHex === nextHex,
-        );
-        const next = [...prev];
-        if (duplicateColorIndex >= 0) next[duplicateColorIndex] = currentCustom;
-        next[lastIndex] = nextHex;
-        return next;
-      });
-      selectColor(nextHex);
-    },
-    [selectColor],
-  );
-
   const addColor = useCallback((hex: string) => {
     setColors((prev) => (prev.includes(hex) ? prev : [...prev, hex]));
   }, []);
@@ -296,8 +267,7 @@ export default function App() {
   }, [engineRef]);
 
   const penColors = colors.slice(0, 3); // first three show directly on screen
-  const paletteColors = colors.length > 4 ? colors.slice(3, -1) : []; // fixed palette swatches before the custom slot
-  const customPaletteColor = colors[colors.length - 1] ?? DEFAULT_COLORS[DEFAULT_COLORS.length - 1];
+  const paletteColors = colors.slice(3); // the rest live inside the palette
   const stageStyle =
     canvasBackground === "beige"
       ? { background: "#f5efe6" }
@@ -362,12 +332,8 @@ export default function App() {
       <Palette
         colors={paletteColors}
         current={color}
-        customColor={customPaletteColor}
-        brushSize={brushSize}
         visible={tool === "paint" && paletteOpen}
         onSelect={selectColor}
-        onSelectCustomColor={selectCustomColor}
-        onBrushSizeChange={setBrushSize}
       />
 
       <Toolbar

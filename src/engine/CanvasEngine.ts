@@ -4,9 +4,6 @@ import { GRID_LINE_RGBA, GRID_MIN_STEP_EXPORT_PX, GRID_STEP_CSS_PX } from "../co
 
 export type Tool = "paint" | "eraser" | "emoji";
 export type CanvasBackgroundMode = "beige" | "white" | "black" | "grid";
-export const MIN_BRUSH_SIZE = 8;
-export const DEFAULT_BRUSH_SIZE = 16;
-export const MAX_BRUSH_SIZE = 24;
 
 interface EmojiBase {
   cx: number;
@@ -43,6 +40,7 @@ export interface CanvasEngineOptions {
 }
 
 const HALF = 48; // half of the 96px emoji box
+const BRUSH = 16; // thick brush for little fingers
 const ERASE = 46; // even thicker eraser
 
 /**
@@ -64,7 +62,6 @@ export class CanvasEngine {
 
   private activeTool: Tool = "paint";
   private currentColor = "#4aa3ff";
-  private brushSize = DEFAULT_BRUSH_SIZE;
   private backgroundMode: CanvasBackgroundMode = "beige";
   private emojis: EmojiObj[] = [];
   private segments: Segment[] = [];
@@ -151,10 +148,6 @@ export class CanvasEngine {
 
   setColor(hex: string): void {
     this.currentColor = hex;
-  }
-
-  setBrushSize(size: number): void {
-    this.brushSize = clamp(size, MIN_BRUSH_SIZE, MAX_BRUSH_SIZE);
   }
 
   setBackground(mode: CanvasBackgroundMode): void {
@@ -394,7 +387,7 @@ export class CanvasEngine {
     const g = this.ensureSeg().ctx;
     g.globalCompositeOperation = "source-over";
     g.strokeStyle = this.currentColor;
-    g.lineWidth = this.brushSize;
+    g.lineWidth = BRUSH;
     g.beginPath();
     g.moveTo(a.x, a.y);
     g.lineTo(b.x, b.y);
@@ -406,7 +399,7 @@ export class CanvasEngine {
     g.globalCompositeOperation = "source-over";
     g.fillStyle = this.currentColor;
     g.beginPath();
-    g.arc(p.x, p.y, this.brushSize / 2, 0, Math.PI * 2);
+    g.arc(p.x, p.y, BRUSH / 2, 0, Math.PI * 2);
     g.fill();
   }
 
