@@ -68,7 +68,7 @@ export function Palette({
         ref={customInputRef}
         className="paletteCustomInput"
         type="color"
-        value={customColor || "#333333"}
+        value={customColor}
         onChange={(e) => onSelectCustomColor(e.target.value.toLowerCase())}
       />
     </div>
